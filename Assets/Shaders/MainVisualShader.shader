@@ -28,8 +28,6 @@
 			#pragma vertex vert
 			#pragma geometry geo
 			#pragma fragment frag
-			// make fog work
-			#pragma multi_compile_fog
 			
 			#include "UnityCG.cginc"
 
@@ -105,8 +103,9 @@
 				baseColor *= shadow;
 
 				float heatLut = pow(sourceData.y * 10, .5);
-				float4 heatLutUVs = float4(heatLut, 0, 0, 0);
+				float4 heatLutUVs = float4(heatLut + sourceData.a, 0, 0, 0);
 				float3 heatColor = tex2Dlod(_HeatLut, heatLutUVs).xyz;
+				heatColor += (baseColor.x + baseColor.y + baseColor.z).xxx / 3 * .1;
 
 				float longevityLut = sourceData.z;
 				float4 longevityLutUVs = float4(longevityLut, 0, 0, 0);
