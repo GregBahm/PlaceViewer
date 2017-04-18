@@ -34,6 +34,6 @@ public class TooltipScript : MonoBehaviour
 
         _text.color = Color.Lerp(_text.color, textTarget, FadeSpeed);
         _buttonColor = Color.Lerp(_buttonColor, buttonTarget, FadeSpeed);
-        ButtonMaterial.SetColor("_EmissionColor", _buttonColor);
+        ButtonMaterial.SetColor("_FocusColor", _buttonColor);
 	}
 }

@@ -39,7 +39,7 @@ public class ViewerScript : MonoBehaviour
     [Range(0, 1)]
     public float ColorLerpSpeed;
     
-    private string OutputFolder = @"C:\Users\Lisa\Documents\PlaceViewer\ProcessedData\";
+    private string OutputFolder;
 
     public Material Mat;
     
@@ -58,9 +58,29 @@ public class ViewerScript : MonoBehaviour
 
     private int lastLoadedTextureIndex;
 
+    bool validFolder;
+
     void Start()
     {
-        //OutputFolder = File.ReadAllText(ImageProcessor.OutputPathFile);
+        if(!File.Exists(ImageProcessor.OutputPathFile))
+        {
+            System.Windows.Forms.FolderBrowserDialog outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog();
+
+            outputFolderDialog.Description = "Where is the processed PNG data?";
+            System.Windows.Forms.DialogResult result = outputFolderDialog.ShowDialog();
+
+            OutputFolder = outputFolderDialog.SelectedPath;
+            validFolder = Directory.Exists(OutputFolder);
+            if (validFolder)
+            {
+                File.WriteAllText(ImageProcessor.OutputPathFile, OutputFolder);
+            }
+            else
+            {
+                return;
+            }
+        }
+        OutputFolder = File.ReadAllText(ImageProcessor.OutputPathFile);
         texturePaths = Directory.GetFiles(OutputFolder);
 
         inputTexture = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
@@ -69,6 +89,10 @@ public class ViewerScript : MonoBehaviour
     
     private void Update()
     {
+        if (!validFolder)
+        {
+            return;
+        }
         UpdateColorModeProperties();
         UpdateHeightModeProperties();
 
