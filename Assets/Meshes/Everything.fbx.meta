@@ -1,0 +1,315 @@
+fileFormatVersion: 2
+guid: 6922c16984346ea46b1b41814177eb1b
+timeCreated: 1492148164
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Arrow
+    100002: Arrow1
+    100004: Arrow2
+    100006: Arrow3
+    100008: ArrowEnd
+    100010: ArrowEnd 1
+    100012: ArrowEnd 2
+    100014: ArrowEnd 3
+    100016: ArrowStem
+    100018: ArrowStem 1
+    100020: ArrowStem 2
+    100022: ArrowStem 3
+    100024: body
+    100026: button_1
+    100028: button_2
+    100030: button_3
+    100032: color_text
+    100034: //RootNode
+    100036: grip_trigger
+    100038: heat_text
+    100040: longevity_text
+    100042: Move_Indicator
+    100044: MovementCenterBlip
+    100046: polySurface10
+    100048: polySurface11
+    100050: polySurface12
+    100052: polySurface13
+    100054: polySurface14
+    100056: polySurface15
+    100058: polySurface16
+    100060: polySurface17
+    100062: polySurface18
+    100064: polySurface2
+    100066: polySurface20
+    100068: polySurface21
+    100070: polySurface22
+    100072: polySurface23
+    100074: polySurface3
+    100076: polySurface4
+    100078: polySurface5
+    100080: polySurface6
+    100082: polySurface7
+    100084: polySurface8
+    100086: polySurface9
+    100088: pPlane18
+    100090: primary_trigger
+    100092: ring
+    100094: stick
+    100096: time_indicator
+    100098: TimelineBar
+    100100: TimelineClock
+    100102: touch_controller_L
+    100104: vertical_heat_text
+    400000: Arrow
+    400002: Arrow1
+    400004: Arrow2
+    400006: Arrow3
+    400008: ArrowEnd
+    400010: ArrowEnd 1
+    400012: ArrowEnd 2
+    400014: ArrowEnd 3
+    400016: ArrowStem
+    400018: ArrowStem 1
+    400020: ArrowStem 2
+    400022: ArrowStem 3
+    400024: body
+    400026: button_1
+    400028: button_2
+    400030: button_3
+    400032: color_text
+    400034: //RootNode
+    400036: grip_trigger
+    400038: heat_text
+    400040: longevity_text
+    400042: Move_Indicator
+    400044: MovementCenterBlip
+    400046: polySurface10
+    400048: polySurface11
+    400050: polySurface12
+    400052: polySurface13
+    400054: polySurface14
+    400056: polySurface15
+    400058: polySurface16
+    400060: polySurface17
+    400062: polySurface18
+    400064: polySurface2
+    400066: polySurface20
+    400068: polySurface21
+    400070: polySurface22
+    400072: polySurface23
+    400074: polySurface3
+    400076: polySurface4
+    400078: polySurface5
+    400080: polySurface6
+    400082: polySurface7
+    400084: polySurface8
+    400086: polySurface9
+    400088: pPlane18
+    400090: primary_trigger
+    400092: ring
+    400094: stick
+    400096: time_indicator
+    400098: TimelineBar
+    400100: TimelineClock
+    400102: touch_controller_L
+    400104: vertical_heat_text
+    2300000: ArrowEnd
+    2300002: ArrowEnd 1
+    2300004: ArrowEnd 2
+    2300006: ArrowEnd 3
+    2300008: ArrowStem
+    2300010: ArrowStem 1
+    2300012: ArrowStem 2
+    2300014: ArrowStem 3
+    2300016: body
+    2300018: button_1
+    2300020: button_2
+    2300022: button_3
+    2300024: color_text
+    2300026: grip_trigger
+    2300028: heat_text
+    2300030: longevity_text
+    2300032: MovementCenterBlip
+    2300034: polySurface10
+    2300036: polySurface11
+    2300038: polySurface12
+    2300040: polySurface13
+    2300042: polySurface14
+    2300044: polySurface15
+    2300046: polySurface16
+    2300048: polySurface17
+    2300050: polySurface18
+    2300052: polySurface2
+    2300054: polySurface20
+    2300056: polySurface21
+    2300058: polySurface22
+    2300060: polySurface23
+    2300062: polySurface3
+    2300064: polySurface4
+    2300066: polySurface5
+    2300068: polySurface6
+    2300070: polySurface7
+    2300072: polySurface8
+    2300074: polySurface9
+    2300076: primary_trigger
+    2300078: ring
+    2300080: stick
+    2300082: time_indicator
+    2300084: TimelineBar
+    2300086: TimelineClock
+    3300000: ArrowEnd
+    3300002: ArrowEnd 1
+    3300004: ArrowEnd 2
+    3300006: ArrowEnd 3
+    3300008: ArrowStem
+    3300010: ArrowStem 1
+    3300012: ArrowStem 2
+    3300014: ArrowStem 3
+    3300016: body
+    3300018: button_1
+    3300020: button_2
+    3300022: button_3
+    3300024: color_text
+    3300026: grip_trigger
+    3300028: heat_text
+    3300030: longevity_text
+    3300032: MovementCenterBlip
+    3300034: polySurface10
+    3300036: polySurface11
+    3300038: polySurface12
+    3300040: polySurface13
+    3300042: polySurface14
+    3300044: polySurface15
+    3300046: polySurface16
+    3300048: polySurface17
+    3300050: polySurface18
+    3300052: polySurface2
+    3300054: polySurface20
+    3300056: polySurface21
+    3300058: polySurface22
+    3300060: polySurface23
+    3300062: polySurface3
+    3300064: polySurface4
+    3300066: polySurface5
+    3300068: polySurface6
+    3300070: polySurface7
+    3300072: polySurface8
+    3300074: polySurface9
+    3300076: primary_trigger
+    3300078: ring
+    3300080: stick
+    3300082: time_indicator
+    3300084: TimelineBar
+    3300086: TimelineClock
+    4300000: stick
+    4300002: primary_trigger
+    4300004: grip_trigger
+    4300006: ring
+    4300008: button_1
+    4300010: button_2
+    4300012: button_3
+    4300014: body
+    4300016: MovementCenterBlip
+    4300018: ArrowEnd
+    4300020: ArrowStem
+    4300022: ArrowEnd
+    4300024: ArrowStem
+    4300026: ArrowEnd
+    4300028: ArrowStem
+    4300030: ArrowEnd
+    4300032: ArrowStem
+    4300034: color_text
+    4300036: polySurface2
+    4300038: polySurface3
+    4300040: polySurface4
+    4300042: polySurface5
+    4300044: polySurface6
+    4300046: polySurface7
+    4300048: polySurface8
+    4300050: polySurface9
+    4300052: polySurface10
+    4300054: polySurface11
+    4300056: polySurface12
+    4300058: polySurface13
+    4300060: polySurface14
+    4300062: polySurface15
+    4300064: polySurface16
+    4300066: polySurface17
+    4300068: polySurface18
+    4300070: polySurface20
+    4300072: polySurface21
+    4300074: polySurface22
+    4300076: polySurface23
+    4300078: TimelineBar
+    4300080: time_indicator
+    4300082: heat_text
+    4300084: longevity_text
+    4300086: TimelineClock
+    7400000: Take 001
+    9500000: //RootNode
+  materials:
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
