@@ -7,58 +7,58 @@ using UnityEngine;
 
 public class DiffLoader
 {
-    private int TimestampInSeconds;
-    private int XPos;
-    private int YPos;
-    private uint ColorId;
+    private int _timestampInSeconds;
+    private int _xPos;
+    private int _yPos;
+    private uint _colorId;
 
-    private byte[] data;
-    private string compressedDataPath = Application.dataPath + @"\diffs.bin.gz";
-    private int index = 0;
+    private byte[] _data;
+    private string _compressedDataPath = Application.dataPath + @"\diffs.bin.gz";
+    private int _index = 0;
 
-    public int CurrentDiffIndex { get { return index / 16; } }
-    public int TotalDiffCount { get { return data.Length / 16; } }
+    public int CurrentDiffIndex { get { return _index / 16; } }
+    public int TotalDiffCount { get { return _data.Length / 16; } }
 
-    private uint[] ColorData;
-    private ComputeBuffer currentImage;
+    private uint[] _colorData;
+    private ComputeBuffer _currentImage;
     
 
     public DiffLoader()
     {
-        data = DecompressGZip(compressedDataPath);
-        ColorData = new uint[1024 * 1024];
-        currentImage = new ComputeBuffer(1024 * 1024, sizeof(uint));
+        _data = DecompressGZip(_compressedDataPath);
+        _colorData = new uint[1024 * 1024];
+        _currentImage = new ComputeBuffer(1024 * 1024, sizeof(uint));
 	}
 	
 	public ComputeBuffer GetNextTimeslice()
     {
-        int startingTmestamp = TimestampInSeconds;
+        int startingTmestamp = _timestampInSeconds;
 
-        while(TimestampInSeconds == startingTmestamp)
+        while(_timestampInSeconds == startingTmestamp)
         {
             SetPixel();
             GetNextDiff();
         }
-        currentImage.SetData(ColorData);
-        return currentImage;
+        _currentImage.SetData(_colorData);
+        return _currentImage;
 	}
 
     private void SetPixel()
     {
-        int index = XPos * 1024 + YPos;
-        ColorData[Mathf.Min(index, ColorData.Length - 1)] = ColorId;
+        int index = _xPos * 1024 + _yPos;
+        _colorData[Mathf.Min(index, _colorData.Length - 1)] = _colorId;
     }
 
     private void GetNextDiff()
     {
-        TimestampInSeconds = BitConverter.ToUInt16(data, index);
-        index += 4;
-        XPos = 1024 - BitConverter.ToUInt16(data, index);
-        index += 4;
-        YPos = BitConverter.ToUInt16(data, index);
-        index += 4;
-        ColorId = BitConverter.ToUInt16(data, index);
-        index += 4;
+        _timestampInSeconds = BitConverter.ToUInt16(_data, _index);
+        _index += 4;
+        _xPos = 1024 - BitConverter.ToUInt16(_data, _index);
+        _index += 4;
+        _yPos = BitConverter.ToUInt16(_data, _index);
+        _index += 4;
+        _colorId = BitConverter.ToUInt16(_data, _index);
+        _index += 4;
     }
 
     static byte[] DecompressGZip(string filePath)

@@ -5,15 +5,15 @@ using UnityEngine;
 
 public class VRControlScript : MonoBehaviour
 {   
-    private ViewerScript.DisplayMode[] modes;
+    private MainViewerScript.DisplayMode[] modes;
 
-    public ViewerScript.DisplayMode CurrentDisplayMode;
-    private int modeIndex;
+    public MainViewerScript.DisplayMode CurrentDisplayMode;
+    private int _modeIndex;
 
-    public ViewerScript MainScript;
-    public LegendVisualController LegendScript;
-    public TimelineVisualController TimelineScript;
-    public HighlighterController HighlighterScript;
+    public MainViewerScript MainScript;
+    public LegendVisualScript LegendScript;
+    public TimelineVisualScript TimelineScript;
+    public HighlighterScript HighlighterScript;
 
     public Animator LeftMovementAnimator;
     public Animator RightMovementAnimator;
@@ -22,22 +22,22 @@ public class VRControlScript : MonoBehaviour
     public Transform OffHand;
     public Transform Control;
     public Transform HandAverage;
-    private Dampen dampener;
+    private MotionDampenerScript _dampener;
 
     public bool MoveMode;
     public bool ScaleMode;
     
-    private bool scaling;
-    private float initialScale;
-    private float initialHandDistance;
+    private bool _scaling;
+    private float _initialScale;
+    private float _initialHandDistance;
 
-    private bool lastLeftHand;
-    private bool lastRightHand;
+    private bool _lastLeftHand;
+    private bool _lastRightHand;
 
     void Start ()
     {
-        dampener = Control.GetComponent<Dampen>();
-        modes = new ViewerScript.DisplayMode[] { ViewerScript.DisplayMode.ColorAndHeat, ViewerScript.DisplayMode.FullHeat, ViewerScript.DisplayMode.FullLongevity, ViewerScript.DisplayMode.FlatColor };
+        _dampener = Control.GetComponent<MotionDampenerScript>();
+        modes = new MainViewerScript.DisplayMode[] { MainViewerScript.DisplayMode.ColorAndHeat, MainViewerScript.DisplayMode.FullHeat, MainViewerScript.DisplayMode.FullLongevity, MainViewerScript.DisplayMode.FlatColor };
         ApplyDisplayMode();
     }
 
@@ -53,7 +53,7 @@ public class VRControlScript : MonoBehaviour
 
         SetMovementIndicators(leftHand, rightHand);
 
-        dampener.Target = GetDampenerTarget(leftHand, rightHand);
+        _dampener.Target = GetDampenerTarget(leftHand, rightHand);
 
         ScaleMode = leftHand && rightHand;
 
@@ -68,17 +68,17 @@ public class VRControlScript : MonoBehaviour
 
     private void SetMovementIndicators(bool leftHand, bool rightHand)
     {
-        bool newBothHands = leftHand && rightHand && !(lastLeftHand && lastRightHand);
-        if (leftHand && !lastLeftHand || newBothHands)
+        bool newBothHands = leftHand && rightHand && !(_lastLeftHand && _lastRightHand);
+        if (leftHand && !_lastLeftHand || newBothHands)
         {
             LeftMovementAnimator.SetTrigger("Bump");
         }
-        if (rightHand && !lastRightHand || newBothHands)
+        if (rightHand && !_lastRightHand || newBothHands)
         {
             RightMovementAnimator.SetTrigger("Bump");
         }
-        lastLeftHand = leftHand;
-        lastRightHand = rightHand;
+        _lastLeftHand = leftHand;
+        _lastRightHand = rightHand;
     }
 
     private Transform GetDampenerTarget(bool leftHand, bool rightHand)
@@ -104,15 +104,15 @@ public class VRControlScript : MonoBehaviour
         bool cycleDown = OVRInput.GetDown(OVRInput.Button.Two) || OVRInput.GetDown(OVRInput.Button.Four);
         if (cycleUp)
         {
-            modeIndex = (modeIndex + 1) % modes.Length;
+            _modeIndex = (_modeIndex + 1) % modes.Length;
             ApplyDisplayMode();
         }
         if (cycleDown)
         {
-            modeIndex = modeIndex - 1;
-            if (modeIndex == -1)
+            _modeIndex = _modeIndex - 1;
+            if (_modeIndex == -1)
             {
-                modeIndex = modes.Length - 1;
+                _modeIndex = modes.Length - 1;
             }
             ApplyDisplayMode();
         }
@@ -123,28 +123,28 @@ public class VRControlScript : MonoBehaviour
         if (ScaleMode)
         {
             float dist = (MainHand.position - OffHand.position).magnitude;
-            if (!scaling)
+            if (!_scaling)
             {
-                scaling = true;
-                initialScale = Control.transform.localScale.x;
-                initialHandDistance = dist;
+                _scaling = true;
+                _initialScale = Control.transform.localScale.x;
+                _initialHandDistance = dist;
             }
             else
             {
-                float newScale = initialScale * (dist / initialHandDistance);
+                float newScale = _initialScale * (dist / _initialHandDistance);
                 Control.transform.localScale = new Vector3(newScale, newScale, newScale);
             }
         }
         else
         {
-            scaling = false;
+            _scaling = false;
         }
     }
 
     private void ApplyDisplayMode()
     {
-        MainScript.SetDisplayMode(modes[modeIndex]);
-        LegendScript.SetDisplayMode(modes[modeIndex]);
+        MainScript.SetDisplayMode(modes[_modeIndex]);
+        LegendScript.SetDisplayMode(modes[_modeIndex]);
     }
 
     private void UpdateTimeline()

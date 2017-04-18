@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HighlighterController : MonoBehaviour
+public class HighlighterScript : MonoBehaviour
 {
     public bool DoMark;
 

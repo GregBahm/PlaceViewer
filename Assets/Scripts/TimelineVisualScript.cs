@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TimelineVisualController : MonoBehaviour
+public class TimelineVisualScript : MonoBehaviour
 {
     public bool ActiveTimeline;
     public Transform Needlehead;
 
-    public ViewerScript MainScript;
+    public MainViewerScript MainScript;
 
     public GameObject MainTimelineControl;
     public Transform CurrentTimeUi;
@@ -16,11 +16,11 @@ public class TimelineVisualController : MonoBehaviour
     public Transform TimeContainerUi;
     public Transform TimeConnectorUi;
     
-    private float timeUiScale;
+    private float _timeUiScale;
 
     void Start()
     {
-        timeUiScale = (TimeStartUi.position - TimeEndUi.position).magnitude;
+        _timeUiScale = (TimeStartUi.position - TimeEndUi.position).magnitude;
     }
     private void Update()
     {
@@ -33,8 +33,8 @@ public class TimelineVisualController : MonoBehaviour
         MainTimelineControl.transform.position = Needlehead.position;
         MainTimelineControl.transform.rotation = Needlehead.rotation;
         CurrentTimeUi.localPosition = Vector3.zero;
-        float startOffset = timeUiScale * MainScript.Time;
-        float endOffset = timeUiScale * (1 - MainScript.Time);
+        float startOffset = _timeUiScale * MainScript.Time;
+        float endOffset = _timeUiScale * (1 - MainScript.Time);
         TimeStartUi.localPosition = new Vector3(-startOffset, 0, 0);
         TimeEndUi.localPosition = new Vector3(endOffset, 0, 0);
         TimeContainerUi.position = (TimeStartUi.position + TimeEndUi.position) / 2;

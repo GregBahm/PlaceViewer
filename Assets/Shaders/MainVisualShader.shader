@@ -1,4 +1,4 @@
-﻿Shader "Unlit/GeometryShaderExperiment"
+﻿Shader "MainVisualShader"
 {
 	Properties
 	{

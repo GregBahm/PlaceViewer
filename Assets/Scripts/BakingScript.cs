@@ -6,14 +6,14 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ImageProcessor : MonoBehaviour
+public class BakingScript : MonoBehaviour
 {
     public bool WriteOutput;
 
     public bool DisplayLongevity;
     
     public string OutputFolder;
-    private bool validFolder;
+    private bool _validFolder;
 
     public Material Mat;
 
@@ -40,10 +40,10 @@ public class ImageProcessor : MonoBehaviour
 
     public Text Progressbar;
 
-    private int index;
+    private int _index;
 
-    const int ImageResolution = 1024;
-    const int FullResolution = ImageResolution * ImageResolution;
+    private const int ImageResolution = 1024;
+    private const int FullResolution = ImageResolution * ImageResolution;
 
 
     private DiffLoader _diffLoader;
@@ -59,11 +59,11 @@ public class ImageProcessor : MonoBehaviour
     
     private const int DispatchGroupSize = 128;
     
-    private byte[] outputPngData;
+    private byte[] _outputPngData;
 
-    private Texture2D outputVessel;
-    public RenderTexture intermediateRenderTexture;
-    public RenderTexture outputRenderTexture;
+    private Texture2D _outputVessel;
+    private RenderTexture _intermediateRenderTexture;
+    private RenderTexture _outputRenderTexture;
 
     [DllImport("user32.dll")]
     private static extern void FolderBrowserDialog();
@@ -100,8 +100,8 @@ public class ImageProcessor : MonoBehaviour
             outputFolderDialog.Description = "Where do you want to store the processed PNG data?";
             System.Windows.Forms.DialogResult result = outputFolderDialog.ShowDialog();
             OutputFolder = outputFolderDialog.SelectedPath;
-            validFolder = Directory.Exists(OutputFolder);
-            if (validFolder)
+            _validFolder = Directory.Exists(OutputFolder);
+            if (_validFolder)
             {
                 File.WriteAllText(OutputPathFile, OutputFolder);
             }
@@ -118,15 +118,15 @@ public class ImageProcessor : MonoBehaviour
         
         _diffLoader = new DiffLoader();
         
-        outputVessel = new Texture2D(ImageResolution, ImageResolution, TextureFormat.ARGB32, false);
+        _outputVessel = new Texture2D(ImageResolution, ImageResolution, TextureFormat.ARGB32, false);
 
-        intermediateRenderTexture = new RenderTexture(ImageResolution, ImageResolution, 0, RenderTextureFormat.ARGB32);
-        intermediateRenderTexture.filterMode = FilterMode.Point;
-        intermediateRenderTexture.wrapMode = TextureWrapMode.Clamp;
-        intermediateRenderTexture.enableRandomWrite = true;
-        intermediateRenderTexture.Create();
+        _intermediateRenderTexture = new RenderTexture(ImageResolution, ImageResolution, 0, RenderTextureFormat.ARGB32);
+        _intermediateRenderTexture.filterMode = FilterMode.Point;
+        _intermediateRenderTexture.wrapMode = TextureWrapMode.Clamp;
+        _intermediateRenderTexture.enableRandomWrite = true;
+        _intermediateRenderTexture.Create();
 
-        outputRenderTexture = GetRenderTexture();
+        _outputRenderTexture = GetRenderTexture();
     }
 
     private Texture2D GetInputTexture()
@@ -191,7 +191,7 @@ public class ImageProcessor : MonoBehaviour
     {
         if (WriteOutput)
         {
-            if (!validFolder)
+            if (!_validFolder)
             {
                 Progressbar.text = "No valid output folder was selected.";
                 return;
@@ -202,40 +202,40 @@ public class ImageProcessor : MonoBehaviour
             Progressbar.text = "Processing Complete";
             return;
         }
-        index++;
+        _index++;
         Progressbar.text = GetProgressText() ;
-        string outputPath = OutputFolder + index + ".png";
+        string outputPath = OutputFolder + _index + ".png";
 
         Compute.SetBuffer(_computeKernel, "_SourceDataBuffer", _diffLoader.GetNextTimeslice());
         
         int groupSize = Mathf.CeilToInt((float)FullResolution / DispatchGroupSize);
 
-        Compute.SetFloat("_FrameIndex", index);
+        Compute.SetFloat("_FrameIndex", _index);
         Compute.SetFloat("_HeatBurst", HeatBurst);
         Compute.SetFloat("_HeatDecay", HeatDecay);
         Compute.SetBuffer(_computeKernel, "_DataBuffer", _dataBuffer);
-        Compute.SetTexture(_computeKernel, "OutputTexture", intermediateRenderTexture);
+        Compute.SetTexture(_computeKernel, "OutputTexture", _intermediateRenderTexture);
         Compute.Dispatch(_computeKernel, groupSize, 1, 1);
 
         Compute.SetBuffer(_occlusionKernel, "_DataBuffer", _dataBuffer);
-        Compute.SetTexture(_occlusionKernel, "OcclusionInputTexture", intermediateRenderTexture);
-        Compute.SetTexture(_occlusionKernel, "OutputTexture", outputRenderTexture);
+        Compute.SetTexture(_occlusionKernel, "OcclusionInputTexture", _intermediateRenderTexture);
+        Compute.SetTexture(_occlusionKernel, "OutputTexture", _outputRenderTexture);
         Compute.Dispatch(_occlusionKernel, groupSize, 1, 1);
         
         if(WriteOutput)
         {
-            RenderTexture.active = outputRenderTexture;
-            outputVessel.ReadPixels(kRec, 0, 0);
+            RenderTexture.active = _outputRenderTexture;
+            _outputVessel.ReadPixels(kRec, 0, 0);
             RenderTexture.active = null;
-            outputPngData = outputVessel.EncodeToPNG();
-            File.WriteAllBytes(outputPath, outputPngData);
+            _outputPngData = _outputVessel.EncodeToPNG();
+            File.WriteAllBytes(outputPath, _outputPngData);
         }
 
         Mat.SetFloat("_LongevityHeightAlpha", DisplayLongevity ? 1 : 0);
         Mat.SetFloat("_HeatHeightAlpha", DisplayLongevity ? 0 : 1);
         Mat.SetFloat("_LongevityAlpha", DisplayLongevity ? 1 : 0);
         Mat.SetFloat("_HeatAlpha", 0);
-        Mat.SetTexture("_MainTex", outputRenderTexture);
+        Mat.SetTexture("_MainTex", _outputRenderTexture);
     }
 
     private string GetProgressText()
