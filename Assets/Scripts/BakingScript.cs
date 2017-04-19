@@ -204,7 +204,6 @@ public class BakingScript : MonoBehaviour
         }
         _index++;
         Progressbar.text = GetProgressText() ;
-        string outputPath = OutputFolder + _index + ".png";
 
         Compute.SetBuffer(_computeKernel, "_SourceDataBuffer", _diffLoader.GetNextTimeslice());
         
@@ -224,6 +223,7 @@ public class BakingScript : MonoBehaviour
         
         if(WriteOutput)
         {
+            string outputPath = Path.Combine(OutputFolder, _index + ".png");
             RenderTexture.active = _outputRenderTexture;
             _outputVessel.ReadPixels(kRec, 0, 0);
             RenderTexture.active = null;
