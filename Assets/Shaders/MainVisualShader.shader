@@ -48,10 +48,10 @@
 				float3 color : COLOR;
 				float4 vertex : SV_POSITION;
 				float3 normal : NORMAL;
-				float3 viewDir : TEXCOORD0;
 				float3 worldPos : TEXCOORD1;
 				float distFromBounce : TEXCOORD2;
 				float3 bounceLightColor :TEXCOORD3;
+				float2 uv : TEXCOORD4;
 			};
 
 			struct sideQuadVert
@@ -59,6 +59,7 @@
 				float3 pos : TEXCOORD0;
 				float distFromBounce : TEXCOORD1;
 				float3 bounceLightColor :TEXCOORD2;
+				float2 uv : TEXCOORD3;
 			};
 
 			sampler2D _MainTex;
@@ -100,7 +101,7 @@
 				shadow = lerp(1, shadow, _HeatHeightAlpha);
 				float4 colorLutUVs = float4(sourceData.x, 0, 0, 0);
 				float3 baseColor = tex2Dlod(_PixelIndexLut, colorLutUVs).xyz;
-				baseColor *= shadow;
+				baseColor = pow(baseColor * shadow, 2);
 
 				float heatLut = pow(sourceData.y * 10, .5);
 				float4 heatLutUVs = float4(heatLut + sourceData.a, 0, 0, 0);
@@ -121,7 +122,8 @@
 			v2g vert (appdata v)
 			{
 				v2g o;
-				v.uv = float2(v.uv.x, v.uv.y + ((float)24 / 1024)) * ((float)1000 / 1024);
+				v.uv.x = 1 - v.uv.x;
+				v.uv *= (float)1000 / 1024;
 				o.uv = v.uv;
 				o.vertex = v.vertex;
 				return o;
@@ -137,30 +139,30 @@
 			{
 				triStream.RestartStrip();
 
+				o.uv = cornerA.uv;
 				o.distFromBounce = cornerA.distFromBounce;
 				o.bounceLightColor = cornerA.bounceLightColor;
-				o.viewDir = UnityWorldSpaceViewDir(cornerA.pos);
 				o.worldPos = mul(unity_ObjectToWorld, cornerA.pos);
 				o.vertex = UnityObjectToClipPos(cornerA.pos);
 				triStream.Append(o);
 
+				o.uv = cornerB.uv;
 				o.distFromBounce = cornerB.distFromBounce;
 				o.bounceLightColor = cornerB.bounceLightColor;
-				o.viewDir = UnityWorldSpaceViewDir(cornerB.pos);
 				o.worldPos = mul(unity_ObjectToWorld, cornerB.pos);
 				o.vertex = UnityObjectToClipPos(cornerB.pos);
 				triStream.Append(o);
 
+				o.uv = cornerC.uv;
 				o.distFromBounce = cornerC.distFromBounce;
 				o.bounceLightColor = cornerC.bounceLightColor;
-				o.viewDir = UnityWorldSpaceViewDir(cornerC.pos);
 				o.worldPos = mul(unity_ObjectToWorld, cornerC.pos);
 				o.vertex = UnityObjectToClipPos(cornerC.pos);
 				triStream.Append(o);
 
+				o.uv = cornerD.uv;
 				o.distFromBounce = cornerD.distFromBounce;
 				o.bounceLightColor = cornerD.bounceLightColor;
-				o.viewDir = UnityWorldSpaceViewDir(cornerD.pos);
 				o.worldPos = mul(unity_ObjectToWorld, cornerD.pos);
 				o.vertex = UnityObjectToClipPos(cornerD.pos);
 				triStream.Append(o);
@@ -175,8 +177,8 @@
 				inout TriangleStream<g2f> triStream)
 			{
 				const float halfPixelOffset = ((float)1000 / 1024) / 1000 / 2;
-				float2 left = float2(uvs.x + halfPixelOffset, uvs.y);
-				float2 right = float2(uvs.x - halfPixelOffset, uvs.y);
+				float2 left = float2(uvs.x - halfPixelOffset, uvs.y);
+				float2 right = float2(uvs.x + halfPixelOffset, uvs.y);
 				fixed4 leftPixel = tex2Dlod(_MainTex, float4(left, 0, 0));
 				fixed leftHeight = GetHeight(leftPixel);
 				fixed4 rightPixel = tex2Dlod(_MainTex, float4(right, 0, 0));
@@ -191,21 +193,25 @@
 					fixed3 bounceLightColor = GetColor(leftPixel);
 
 					sideQuadVert cornerA;
+					cornerA.uv = left;
 					cornerA.bounceLightColor = bounceLightColor;
 					cornerA.distFromBounce = currentHeight - leftHeight;
 					cornerA.pos = float3(xDimension, currentHeight  * _HeatHeightMax, upperZ);
 
 					sideQuadVert cornerB;
+					cornerB.uv = left;
 					cornerB.bounceLightColor = bounceLightColor;
 					cornerB.distFromBounce = currentHeight - leftHeight;
 					cornerB.pos = float3(xDimension, currentHeight * _HeatHeightMax, lowerZ);
 					
 					sideQuadVert cornerC;
+					cornerC.uv = left;
 					cornerC.bounceLightColor = bounceLightColor;
 					cornerC.distFromBounce = 0;
 					cornerC.pos = float3(xDimension, leftHeight * _HeatHeightMax, upperZ);
 					
 					sideQuadVert cornerD;
+					cornerD.uv = left;
 					cornerD.bounceLightColor = bounceLightColor;
 					cornerD.distFromBounce = 0;
 					cornerD.pos = float3(xDimension, leftHeight * _HeatHeightMax, lowerZ);
@@ -222,21 +228,25 @@
 					fixed3 bounceLightColor = GetColor(rightPixel);
 				
 					sideQuadVert cornerA;
+					cornerA.uv = right;
 					cornerA.bounceLightColor = bounceLightColor;
 					cornerA.distFromBounce = currentHeight - rightHeight;
 					cornerA.pos = float3(xDimension, currentHeight  * _HeatHeightMax, upperZ);
 					
 					sideQuadVert cornerB;
+					cornerB.uv = right;
 					cornerB.bounceLightColor = bounceLightColor;
 					cornerB.distFromBounce = currentHeight - rightHeight;
 					cornerB.pos = float3(xDimension, currentHeight * _HeatHeightMax, lowerZ);
 					
 					sideQuadVert cornerC;
+					cornerC.uv = right;
 					cornerC.bounceLightColor = bounceLightColor;
 					cornerC.distFromBounce = 0;
 					cornerC.pos = float3(xDimension, rightHeight * _HeatHeightMax, upperZ);
 					
 					sideQuadVert cornerD;
+					cornerD.uv = right;
 					cornerD.bounceLightColor = bounceLightColor;
 					cornerD.distFromBounce = 0;
 					cornerD.pos = float3(xDimension, rightHeight * _HeatHeightMax, lowerZ);
@@ -271,21 +281,25 @@
 					fixed3 bounceLightColor = GetColor(northPixel);
 
 					sideQuadVert cornerA;
+					cornerA.uv = north;
 					cornerA.bounceLightColor = bounceLightColor;
 					cornerA.distFromBounce = currentHeight - northHeight;
 					cornerA.pos = float3(upperX, currentHeight  * _HeatHeightMax, zDimension);
 					
 					sideQuadVert cornerB;
+					cornerB.uv = north;
 					cornerB.bounceLightColor = bounceLightColor;
 					cornerB.distFromBounce = currentHeight - northHeight;
 					cornerB.pos = float3(lowerX, currentHeight * _HeatHeightMax, zDimension);
 					
 					sideQuadVert cornerC;
+					cornerC.uv = north;
 					cornerC.bounceLightColor = bounceLightColor;
 					cornerC.distFromBounce = 0;
 					cornerC.pos = float3(upperX, northHeight * _HeatHeightMax, zDimension);
 					
 					sideQuadVert cornerD;
+					cornerD.uv = north;
 					cornerD.bounceLightColor = bounceLightColor;
 					cornerD.distFromBounce = 0;
 					cornerD.pos = float3(lowerX, northHeight * _HeatHeightMax, zDimension);
@@ -302,21 +316,25 @@
 					fixed3 bounceLightColor = GetColor(southPixel);
 				
 					sideQuadVert cornerA;
+					cornerA.uv = south;
 					cornerA.bounceLightColor = bounceLightColor;
 					cornerA.distFromBounce = currentHeight - southHeight;
 					cornerA.pos = float3(upperX, currentHeight  * _HeatHeightMax, zDimension);
 					
 					sideQuadVert cornerB;
+					cornerB.uv = south;
 					cornerB.bounceLightColor = bounceLightColor;
 					cornerB.distFromBounce = currentHeight - southHeight;
 					cornerB.pos = float3(lowerX, currentHeight * _HeatHeightMax, zDimension);
 					
 					sideQuadVert cornerC;
+					cornerC.uv = south;
 					cornerC.bounceLightColor = bounceLightColor;
 					cornerC.distFromBounce = 0;
 					cornerC.pos = float3(upperX, southHeight * _HeatHeightMax, zDimension);
 					
 					sideQuadVert cornerD;
+					cornerD.uv = south;
 					cornerD.bounceLightColor = bounceLightColor;
 					cornerD.distFromBounce = 0;
 					cornerD.pos = float3(lowerX, southHeight * _HeatHeightMax, zDimension);
@@ -333,9 +351,7 @@
 				o.distFromBounce = 1;
 				o.bounceLightColor = 0;
 
-				const float halfPixelOffset = ((float)1000 / 1024) / 1000 / 2;
 				float2 uvs = (p[0].uv + p[1].uv + p[2].uv) / 3;
-				uvs.y += halfPixelOffset;
 				fixed4 sourceData = tex2Dlod(_MainTex, float4(uvs, 0, 0));
 				float3 color = GetColor(sourceData);
 				o.color = color;
@@ -350,17 +366,17 @@
 				float3 baseNormal = mul(unity_ObjectToWorld, float3(0,1,0));
 				o.normal = baseNormal;
 
-				o.viewDir = UnityWorldSpaceViewDir(p0vertex);
+				o.uv = p[0].uv;
 				o.worldPos = mul(unity_ObjectToWorld, p[0].vertex);
 				o.vertex = UnityObjectToClipPos(p0vertex);
 				triStream.Append(o);
 
-				o.viewDir = UnityWorldSpaceViewDir(p1vertex);
+				o.uv = p[1].uv;
 				o.worldPos = mul(unity_ObjectToWorld, p[1].vertex);
 				o.vertex = UnityObjectToClipPos(p1vertex);
 				triStream.Append(o);
 
-				o.viewDir = UnityWorldSpaceViewDir(p2vertex);
+				o.uv = p[2].uv;
 				o.worldPos = mul(unity_ObjectToWorld, p[2].vertex);
 				o.vertex = UnityObjectToClipPos(p2vertex);
 				triStream.Append(o);
@@ -370,7 +386,7 @@
 				float3 longevityColor = tex2Dlod(_LongevityLut, longevityLutUVs).xyz;
 
 				o.color = lerp(color, longevityColor, _LongevityHeightAlpha);
-
+				 
 				if (currentHeight == 0)
 				{
 					return;
@@ -383,17 +399,20 @@
 			fixed4 frag (g2f i) : SV_Target
 			{
 				float3 toLight = normalize(_LightPos - i.worldPos);
-				float3 halfVector = normalize(normalize(i.viewDir) + toLight);
-				float shine = saturate(dot(i.normal, halfVector));
-				shine = pow(shine, _ShinePower);
 				float lambert = dot(i.normal, toLight);
 				float3 ret = lerp(i.color * _BackLightColor, i.color * _MainLightColor, lambert);
+
+				float3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
+				float3 halfVector = normalize(viewDir + toLight);
+				float shine = saturate(dot(i.normal, halfVector));
+				shine = pow(shine, _ShinePower);
 				ret += shine * _ShineColor;
+
 				float bounceScale = _HeatBounceScale * _HeatHeightAlpha + _LongevityBounceScale * _LongevityHeightAlpha;
 				float3 bounceLight = i.bounceLightColor * ( 1 - saturate(i.distFromBounce * bounceScale)) * .5;
 				ret += bounceLight;
-				float occlusion = pow(saturate(i.distFromBounce * bounceScale), .2);
-				ret *= max(occlusion, 1 - _HeatHeightAlpha); // Only want occlusion with heat height
+				float psuedoOcclusion = pow(saturate(i.distFromBounce * bounceScale), .2);
+				ret *= max(psuedoOcclusion, 1 - _HeatHeightAlpha); // Only want psuedoOcclusion with heat height
 
 				return float4(ret, 1);
 			}

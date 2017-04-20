@@ -62,7 +62,7 @@ public class VRControlScript : MonoBehaviour
         UpdateScaleMode();
         UpdateTimeline();
 
-        HighlighterScript.DoMark = OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger, OVRInput.Controller.RTouch);
+        HighlighterScript.ShowHighlight = OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger, OVRInput.Controller.RTouch);
 
     }
 

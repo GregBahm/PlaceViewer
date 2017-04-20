@@ -5,43 +5,74 @@ using UnityEngine;
 
 public class HighlighterScript : MonoBehaviour
 {
-    public bool DoMark;
+    public bool ShowHighlight;
+    [Range(0,1)]
+    public float TargetDrag;
 
-    public Transform BeamTip;
-    public Transform BeamBody;
-    public Transform BeamBase;
+    private Vector3 _target;
 
-    private const int MainPlaneLayer = 8;
+    public GameObject HighlighterMesh;
+    public Transform MainGrid;
+
+    private bool _newHighlight;
 
     private void Update()
     {
-        Debug.DrawLine(BeamBase.position, BeamBase.position + BeamBase.forward * 1000000, Color.red);
-        if (DoMark)
+        if (ShowHighlight)
         {
-            RaycastHit raycast;
-            Ray ray = new Ray(BeamBase.position, BeamBase.forward);
-            bool markOnBoard = Physics.Raycast(ray, out raycast, 1000000);
-            BeamBody.gameObject.SetActive(markOnBoard);
-            BeamTip.gameObject.SetActive(markOnBoard);
-            if (markOnBoard)
+            HighlighterMesh.SetActive(true);
+            Vector3 intersection;
+            bool doesIntersect = LinePlaneIntersection(out intersection, 
+                transform.position, 
+                transform.parent.forward, 
+                MainGrid.up, 
+                MainGrid.position);
+            if(doesIntersect)
             {
-                UpdateBeam(raycast, markOnBoard);
+                if (_newHighlight)
+                {
+                    _newHighlight = false;
+                    _target = intersection;
+                }
+                else
+                {
+                    _target = Vector3.Lerp(_target, intersection, TargetDrag);
+                }
             }
+            LookAtTarget();
         }
         else
         {
-            BeamBody.gameObject.SetActive(false);
-            BeamTip.gameObject.SetActive(false);
+            _newHighlight = true;
+            HighlighterMesh.SetActive(false);
         }
     }
 
-    private void UpdateBeam(RaycastHit raycast, bool markOnBoard)
+    private void LookAtTarget()
     {
-        BeamTip.gameObject.SetActive(markOnBoard);
-        BeamBody.gameObject.SetActive(markOnBoard);
-        BeamTip.position = raycast.point;
-        BeamBody.position = (BeamBase.position + BeamTip.position) / 2;
-        BeamBody.localScale = new Vector3(0, 0, raycast.distance);
-        BeamBody.LookAt(BeamTip);
+        float length = (transform.position - _target).magnitude;
+        transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, length / 2);
+        transform.LookAt(_target);
     }
+
+    private static bool LinePlaneIntersection(out Vector3 intersection, Vector3 linePoint, Vector3 lineVec, Vector3 planeNormal, Vector3 planePoint)
+    {
+        float dotNumerator;
+        float dotDenominator;
+        float length;
+        Vector3 vector;
+        intersection = Vector3.zero;
+        dotNumerator = Vector3.Dot((planePoint - linePoint), planeNormal);
+        dotDenominator = Vector3.Dot(lineVec, planeNormal);
+        
+        if (dotDenominator != 0.0f)
+        {
+            length = dotNumerator / dotDenominator;
+            vector = lineVec.normalized * length;
+            intersection = linePoint + vector;
+            return true;
+        }
+        return false;    
+    }
+
 }

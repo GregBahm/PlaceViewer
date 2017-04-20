@@ -53,7 +53,7 @@ public class DiffLoader
     {
         _timestampInSeconds = BitConverter.ToUInt16(_data, _index);
         _index += 4;
-        _xPos = 1024 - BitConverter.ToUInt16(_data, _index);
+        _xPos = BitConverter.ToUInt16(_data, _index);
         _index += 4;
         _yPos = BitConverter.ToUInt16(_data, _index);
         _index += 4;

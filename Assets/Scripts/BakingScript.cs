@@ -65,6 +65,8 @@ public class BakingScript : MonoBehaviour
     private RenderTexture _intermediateRenderTexture;
     private RenderTexture _outputRenderTexture;
 
+    private DateTime _startTime;
+
     [DllImport("user32.dll")]
     private static extern void FolderBrowserDialog();
 
@@ -127,6 +129,7 @@ public class BakingScript : MonoBehaviour
         _intermediateRenderTexture.Create();
 
         _outputRenderTexture = GetRenderTexture();
+        _startTime = DateTime.Now;
     }
 
     private Texture2D GetInputTexture()
@@ -197,7 +200,7 @@ public class BakingScript : MonoBehaviour
                 return;
             }
         }
-        if(_diffLoader.CurrentDiffIndex == _diffLoader.TotalDiffCount -1)
+        if(_diffLoader.CurrentDiffIndex == _diffLoader.TotalDiffCount)
         {
             Progressbar.text = "Processing Complete";
             return;
@@ -223,7 +226,7 @@ public class BakingScript : MonoBehaviour
         
         if(WriteOutput)
         {
-            string outputPath = Path.Combine(OutputFolder, _index + ".png");
+            string outputPath = Path.Combine(OutputFolder, _index.ToString("D8") + ".png");
             RenderTexture.active = _outputRenderTexture;
             _outputVessel.ReadPixels(kRec, 0, 0);
             RenderTexture.active = null;
@@ -240,9 +243,18 @@ public class BakingScript : MonoBehaviour
 
     private string GetProgressText()
     {
-        int percent = (int)(100 * ((float)_diffLoader.CurrentDiffIndex / _diffLoader.TotalDiffCount));
-        return _diffLoader.CurrentDiffIndex + " of " + _diffLoader.TotalDiffCount
+        int diffIndex = Math.Max(_diffLoader.CurrentDiffIndex, 1);// Prevent divide by zero later on
+        float prog = (float)diffIndex / _diffLoader.TotalDiffCount;
+        int percent = (int)(100 * prog);
+        string ret = _diffLoader.CurrentDiffIndex + " of " + _diffLoader.TotalDiffCount
             + "\n" + percent + "% complete";
+
+        TimeSpan timeSpanned = DateTime.Now - _startTime;
+        float ticks = timeSpanned.Ticks * ((1 - prog) / prog);
+        TimeSpan timeRemaining = TimeSpan.FromTicks((long)ticks);
+        //ret += "\n" + timeRemaining.Hours + ":" + (timeRemaining.Minutes).ToString("D2") + " remaining";
+
+        return ret;
     }
 }
 
