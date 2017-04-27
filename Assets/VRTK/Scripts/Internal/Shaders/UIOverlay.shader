@@ -1,4 +1,6 @@
-﻿Shader "UI/Overlay"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "UI/Overlay"
 {
 	Properties
 	{
@@ -75,7 +77,7 @@
 				v2f vert (appdata_t v)
 				{
 					v2f o;
-					o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+					o.vertex = UnityObjectToClipPos(v.vertex);
 					o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
 					o.color = v.color * _Color;
 #ifdef UNITY_HALF_TEXEL_OFFSET
