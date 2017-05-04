@@ -56,8 +56,8 @@ public class VRControlScript_VRTK : MonoBehaviour
         HandAverage.rotation = Quaternion.Lerp(MainHand.rotation, OffHand.rotation, .5f);
         HandAverage.LookAt(MainHand.position, HandAverage.up);
 
-        bool leftHand = (LeftControllerEvents.GetGripAxis() == 1) ? true : false;
-        bool rightHand = (RightControllerEvents.GetGripAxis() == 1) ? true : false;
+        bool leftHand = (LeftControllerEvents.gripPressed) ? true : false;
+        bool rightHand = (RightControllerEvents.gripPressed) ? true : false;
         //bool leftHand  = OVRInput.Get(OVRInput.Button.PrimaryHandTrigger, OVRInput.Controller.LTouch);
         //bool rightHand = OVRInput.Get(OVRInput.Button.PrimaryHandTrigger, OVRInput.Controller.RTouch);
 
@@ -82,11 +82,11 @@ public class VRControlScript_VRTK : MonoBehaviour
         bool newBothHands = leftHand && rightHand && !(_lastLeftHand && _lastRightHand);
         if (leftHand && !_lastLeftHand || newBothHands)
         {
-            LeftMovementAnimator.SetTrigger("Bump");
+            //LeftMovementAnimator.SetTrigger("Bump");
         }
         if (rightHand && !_lastRightHand || newBothHands)
         {
-            RightMovementAnimator.SetTrigger("Bump");
+            //RightMovementAnimator.SetTrigger("Bump");
         }
         _lastLeftHand = leftHand;
         _lastRightHand = rightHand;
