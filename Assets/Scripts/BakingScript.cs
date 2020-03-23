@@ -65,8 +65,6 @@ public class BakingScript : MonoBehaviour
     private RenderTexture _intermediateRenderTexture;
     private RenderTexture _outputRenderTexture;
 
-    private DateTime _startTime;
-
     [DllImport("user32.dll")]
     private static extern void FolderBrowserDialog();
 
@@ -100,7 +98,7 @@ public class BakingScript : MonoBehaviour
             System.Windows.Forms.FolderBrowserDialog outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog();
 
             outputFolderDialog.Description = "Where do you want to store the processed PNG data?";
-            System.Windows.Forms.DialogResult result = outputFolderDialog.ShowDialog();
+            outputFolderDialog.ShowDialog();
             OutputFolder = outputFolderDialog.SelectedPath;
             _validFolder = Directory.Exists(OutputFolder);
             if (_validFolder)
@@ -129,7 +127,6 @@ public class BakingScript : MonoBehaviour
         _intermediateRenderTexture.Create();
 
         _outputRenderTexture = GetRenderTexture();
-        _startTime = DateTime.Now;
     }
 
     private Texture2D GetInputTexture()
@@ -248,12 +245,7 @@ public class BakingScript : MonoBehaviour
         int percent = (int)(100 * prog);
         string ret = _diffLoader.CurrentDiffIndex + " of " + _diffLoader.TotalDiffCount
             + "\n" + percent + "% complete";
-
-        TimeSpan timeSpanned = DateTime.Now - _startTime;
-        float ticks = timeSpanned.Ticks * ((1 - prog) / prog);
-        TimeSpan timeRemaining = TimeSpan.FromTicks((long)ticks);
-        //ret += "\n" + timeRemaining.Hours + ":" + (timeRemaining.Minutes).ToString("D2") + " remaining";
-
+        
         return ret;
     }
 }

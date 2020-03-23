@@ -37,26 +37,31 @@ public class MainViewerScript : MonoBehaviour
     public float Time;
 
     [Range(0, 1)]
+    public float TreeRingTopTime;
+
+    public bool LoadTreeRingTop;
+
+    [Range(0, 1)]
     public float ColorLerpSpeed;
     
     private string _outputFolder;
 
     public Material Mat;
+    public Material TreeRingTopMat;
+    public Material TreeRingBottomMat;
+
+    private TextureLoader _mainTextureLoader;
+    private TextureLoader _treeRingTextureLoader;
     
     private const int DispatchGroupSize = 128;
 
     private string[] _texturePaths;
-
-    private Texture2D _inputTexture;
-    private byte[] _inputPngData;
     
     private float _currentHeatAlpha;
     private float _currentLongevityAlpha;
 
     private float _currentHeatHeightAlpha;
     private float _currentLongevityHeightAlpha;
-
-    private int _lastLoadedTextureIndex;
 
     private bool _validFolder;
 
@@ -67,7 +72,7 @@ public class MainViewerScript : MonoBehaviour
             System.Windows.Forms.FolderBrowserDialog outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog();
 
             outputFolderDialog.Description = "Where is the processed PNG data?";
-            System.Windows.Forms.DialogResult result = outputFolderDialog.ShowDialog();
+            outputFolderDialog.ShowDialog();
 
             _outputFolder = outputFolderDialog.SelectedPath;
             _validFolder = Directory.Exists(_outputFolder);
@@ -86,9 +91,8 @@ public class MainViewerScript : MonoBehaviour
         }
         _outputFolder = File.ReadAllText(BakingScript.OutputPathFile);
         _texturePaths = Directory.GetFiles(_outputFolder);
-
-        _inputTexture = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
-        _inputTexture.filterMode = FilterMode.Point;
+        _mainTextureLoader = new TextureLoader(Mat, TreeRingBottomMat);
+        _treeRingTextureLoader = new TextureLoader(TreeRingTopMat);
     }
     
     private void Update()
@@ -99,23 +103,15 @@ public class MainViewerScript : MonoBehaviour
         }
         UpdateColorModeProperties();
         UpdateHeightModeProperties();
+        _mainTextureLoader.UpdateTexture(Time, _texturePaths);
 
-        int textureIndex = (int)Mathf.Min(_texturePaths.Length * Time, _texturePaths.Length - 1);
-        if(textureIndex != _lastLoadedTextureIndex)
+        TreeRingTopTime = Mathf.Max(Time, TreeRingTopTime);
+        if (LoadTreeRingTop)
         {
-            LoadTexture(textureIndex);
-            _lastLoadedTextureIndex = textureIndex;
+            _treeRingTextureLoader.UpdateTexture(TreeRingTopTime, _texturePaths);
         }
+
         Mat.SetVector("_LightPos", Light.position);
-    }
-
-    private void LoadTexture(int textureIndex)
-    {
-        string path = _texturePaths[textureIndex];
-        _inputPngData = File.ReadAllBytes(path);
-        _inputTexture.LoadImage(_inputPngData);
-
-        Mat.SetTexture("_MainTex", _inputTexture);
     }
 
     private void UpdateHeightModeProperties()
@@ -159,6 +155,47 @@ public class MainViewerScript : MonoBehaviour
                 CurrentColorMode = ColorMode.BaseColor;
                 CurrentHeightMode = HeightMode.None;
                 break;
+        }
+    }
+
+    class TextureLoader
+    {
+        private int _lastLoadedTextureIndex;
+        
+        private Texture2D _inputTexture;
+        private byte[] _inputPngData;
+
+        private Material[] _mats;
+
+        public TextureLoader(params Material[] mats)
+        {
+            _mats = mats;
+            _inputTexture = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
+            _inputTexture.filterMode = FilterMode.Point;
+            _inputTexture.wrapMode = TextureWrapMode.Clamp;
+        }
+
+        public void UpdateTexture(float time, string[] texturePaths)
+        {
+            int textureIndex = (int)Mathf.Min(texturePaths.Length * time, texturePaths.Length - 1);
+
+            if (textureIndex != _lastLoadedTextureIndex)
+            {
+                LoadTexture(textureIndex, texturePaths);
+                _lastLoadedTextureIndex = textureIndex;
+            }
+        }
+
+        private void LoadTexture(int textureIndex, string[] texturePaths)
+        {
+            string path = texturePaths[textureIndex];
+            _inputPngData = File.ReadAllBytes(path);
+            _inputTexture.LoadImage(_inputPngData);
+
+            foreach (Material mat in _mats)
+            {
+                mat.SetTexture("_MainTex", _inputTexture);
+            }
         }
     }
 }
