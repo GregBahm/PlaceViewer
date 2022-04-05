@@ -1,6 +1,8 @@
 ﻿#pragma kernel CSMain
 #pragma kernel OcclusionCompute
 
+#define PaletteColorsCount 24 // Note this value also needs to be the size of the ColorHistory Array
+
 float _HeatBurst;
 float _HeatDecay;
 
@@ -9,7 +11,7 @@ struct ParticleData
 	float2 SourcePosition;
 	float Heat;
 	uint Color;
-	float ColorHistory[16];
+	float ColorHistory[24];
 };
 
 Buffer<uint> _SourceDataBuffer;
@@ -41,7 +43,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	_DataBuffer[id.x].Heat = heat;
 	_DataBuffer[id.x].Color = colorKey;
 	_DataBuffer[id.x].ColorHistory[colorKey] += 1;
-    OutputTexture[data.SourcePosition] = float4((float)colorKey / 15, heat, colorHistory, 1);
+    OutputTexture[data.SourcePosition] = float4((float)colorKey / (PaletteColorsCount - 1), heat, colorHistory, 1);
 } 
 
 #define SearchRadius 16

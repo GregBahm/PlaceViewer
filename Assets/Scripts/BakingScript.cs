@@ -41,7 +41,10 @@ public class BakingScript : MonoBehaviour
     private int occlusionKernel;
 
     private ComputeBuffer dataBuffer;
-    private int dataBufferStride = sizeof(float) * 2 + sizeof(float) + sizeof(uint) + sizeof(float) * 16;
+    private int dataBufferStride = sizeof(float) * 2 //SourcePosition
+        + sizeof(float) // Heat
+        + sizeof(uint)  // Color
+        + sizeof(float) * 24; // ColorHistory
 
     private ComputeBuffer gridBuffer;
     private int gridBufferStride = sizeof(float) * 2;
@@ -77,6 +80,14 @@ public class BakingScript : MonoBehaviour
         public float ColorHistory13;
         public float ColorHistory14;
         public float ColorHistory15;
+        public float ColorHistory16;
+        public float ColorHistory17;
+        public float ColorHistory18;
+        public float ColorHistory19;
+        public float ColorHistory20;
+        public float ColorHistory21;
+        public float ColorHistory22;
+        public float ColorHistory23;
     }
 
     void Start()
@@ -148,8 +159,9 @@ public class BakingScript : MonoBehaviour
         {
             for (int j = 0; j < ImageResolution; j++)
             {
-                Vector2 sourcePosition = new Vector2(i, j);
-                data[i * ImageResolution + j] = new ParticleData() {SourcePosition = sourcePosition};
+                ParticleData datum = new ParticleData();
+                datum.SourcePosition = new Vector2(i, j);
+                data[i * ImageResolution + j] = datum;
             }
         }
         dataBuffer.SetData(data);
@@ -206,7 +218,8 @@ public class BakingScript : MonoBehaviour
         int percent = (int)(100 * prog);
         string ret = rawDataSource.CurrentStepIndex + " of " + rawDataSource.TotalSteps
             + "\n" + percent + "% complete";
-        
+        if (!WriteOutput)
+            ret += ". Writing Output = FALSE";
         return ret;
     }
 
