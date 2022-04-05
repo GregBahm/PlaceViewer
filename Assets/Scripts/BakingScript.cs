@@ -35,7 +35,7 @@ public class BakingScript : MonoBehaviour
     private const int FullResolution = ImageResolution * ImageResolution;
 
 
-    private DiffLoader _diffLoader;
+    private ISourceDataFeeder _diffLoader;
 
     private int _computeKernel;
     private int _occlusionKernel;
@@ -53,9 +53,6 @@ public class BakingScript : MonoBehaviour
     private Texture2D _outputVessel;
     private RenderTexture _intermediateRenderTexture;
     private RenderTexture _outputRenderTexture;
-
-    [DllImport("user32.dll")]
-    private static extern void FolderBrowserDialog();
 
     struct ParticleData
     {
@@ -160,7 +157,7 @@ public class BakingScript : MonoBehaviour
 
     private void Update()
     {
-        if(_diffLoader.CurrentDiffIndex == _diffLoader.TotalDiffCount)
+        if(_diffLoader.CurrentStepIndex == _diffLoader.TotalSteps)
         {
             Progressbar.text = "Processing Complete";
             return;
@@ -203,13 +200,18 @@ public class BakingScript : MonoBehaviour
 
     private string GetProgressText()
     {
-        int diffIndex = Math.Max(_diffLoader.CurrentDiffIndex, 1);// Prevent divide by zero later on
-        float prog = (float)diffIndex / _diffLoader.TotalDiffCount;
+        int diffIndex = Math.Max(_diffLoader.CurrentStepIndex, 1);// Prevent divide by zero later on
+        float prog = (float)diffIndex / _diffLoader.TotalSteps;
         int percent = (int)(100 * prog);
-        string ret = _diffLoader.CurrentDiffIndex + " of " + _diffLoader.TotalDiffCount
+        string ret = _diffLoader.CurrentStepIndex + " of " + _diffLoader.TotalSteps
             + "\n" + percent + "% complete";
         
         return ret;
+    }
+
+    private void OnDestroy()
+    {
+        _diffLoader.Dispose();
     }
 }
 

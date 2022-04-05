@@ -3,62 +3,69 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using UnityEngine;
 
-public class DiffLoader
+// DiffLoader consumes the r/Place diffs.bin.gz provided by Reddit
+public class DiffLoader : ISourceDataFeeder
 {
-    private int _timestampInSeconds;
-    private int _xPos;
-    private int _yPos;
-    private uint _colorId;
+    private int timestampInSeconds;
+    private int xPos;
+    private int yPos;
+    private uint colorId;
 
-    private byte[] _data;
-    private string _compressedDataPath = Application.dataPath + @"\diffs.bin.gz";
-    private int _index = 0;
+    private byte[] data;
+    private string compressedDataPath = Application.dataPath + @"\diffs.bin.gz";
+    private int index = 0;
 
-    public int CurrentDiffIndex { get { return _index / 16; } }
-    public int TotalDiffCount { get { return _data.Length / 16; } }
+    public int CurrentStepIndex { get { return index / 16; } }
+    public int TotalSteps { get { return data.Length / 16; } }
 
-    private uint[] _colorData;
-    private ComputeBuffer _currentImage;
+    private uint[] colorData;
+    private ComputeBuffer currentImage;
     
 
     public DiffLoader()
     {
-        _data = DecompressGZip(_compressedDataPath);
-        _colorData = new uint[1024 * 1024];
-        _currentImage = new ComputeBuffer(1024 * 1024, sizeof(uint));
+        data = DecompressGZip(compressedDataPath);
+        colorData = new uint[1024 * 1024];
+        currentImage = new ComputeBuffer(1024 * 1024, sizeof(uint));
 	}
 	
 	public ComputeBuffer GetNextTimeslice()
     {
-        int startingTmestamp = _timestampInSeconds;
+        int startingTmestamp = timestampInSeconds;
 
-        while(_timestampInSeconds == startingTmestamp)
+        while(timestampInSeconds == startingTmestamp)
         {
             SetPixel();
             GetNextDiff();
         }
-        _currentImage.SetData(_colorData);
-        return _currentImage;
+        currentImage.SetData(colorData);
+        return currentImage;
 	}
+
+    public void Dispose()
+    {
+        currentImage.Dispose();
+    }
 
     private void SetPixel()
     {
-        int index = _xPos * 1024 + _yPos;
-        _colorData[Mathf.Min(index, _colorData.Length - 1)] = _colorId;
+        int index = xPos * 1024 + yPos;
+        colorData[Mathf.Min(index, colorData.Length - 1)] = colorId;
     }
 
     private void GetNextDiff()
     {
-        _timestampInSeconds = BitConverter.ToUInt16(_data, _index);
-        _index += 4;
-        _xPos = BitConverter.ToUInt16(_data, _index);
-        _index += 4;
-        _yPos = BitConverter.ToUInt16(_data, _index);
-        _index += 4;
-        _colorId = BitConverter.ToUInt16(_data, _index);
-        _index += 4;
+        timestampInSeconds = BitConverter.ToUInt16(data, index);
+        index += 4;
+        xPos = BitConverter.ToUInt16(data, index);
+        index += 4;
+        yPos = BitConverter.ToUInt16(data, index);
+        index += 4;
+        colorId = BitConverter.ToUInt16(data, index);
+        index += 4;
     }
 
     static byte[] DecompressGZip(string filePath)
@@ -87,3 +94,42 @@ public class DiffLoader
     }
 }
 
+// ScreenshotLoader consumes a library of .pngs, if a gzip of diffs has not been provided 
+public class ScreenshotLoader : ISourceDataFeeder
+{
+    public const string RawImagesFolder = @"F:\rPlace2022\latest\images_single\"; // Replace this with yer local folder
+    private string[] images;
+    private int index = 0;
+    private uint[] colorData;
+    private ComputeBuffer currentImage;
+
+    public int CurrentStepIndex => throw new NotImplementedException();
+
+    public int TotalSteps => throw new NotImplementedException();
+
+    public ScreenshotLoader()
+    {
+        colorData = new uint[1024 * 1024];
+        currentImage = new ComputeBuffer(1024 * 1024, sizeof(uint));
+        images = Directory.GetFiles(RawImagesFolder).OrderBy(item => item).ToArray(); // Alphabetical order
+    }
+
+    public ComputeBuffer GetNextTimeslice()
+    {
+        throw new NotImplementedException();
+        index++;
+    }
+
+    public void Dispose()
+    {
+        currentImage.Dispose();
+    }
+}
+
+public interface ISourceDataFeeder
+{
+    ComputeBuffer GetNextTimeslice();
+    int CurrentStepIndex { get; }
+    int TotalSteps { get; }
+    void Dispose();
+}
