@@ -54,6 +54,8 @@ public class BakingScript : MonoBehaviour
     private RenderTexture intermediateRenderTexture;
     private RenderTexture outputRenderTexture;
 
+    private Rect kRec = new Rect(0, 0, ImageResolution, ImageResolution);
+
     struct ParticleData
     {
         public Vector2 SourcePosition;
@@ -83,8 +85,8 @@ public class BakingScript : MonoBehaviour
         occlusionKernel = Compute.FindKernel("OcclusionCompute");
         InitializeDataBuffer();
         InitializeGridBuffer();
-        
-        rawDataSource = new DiffLoader();
+
+        rawDataSource = new ScreenshotSource(); // new DiffSource();
         
         outputVessel = new Texture2D(ImageResolution, ImageResolution, TextureFormat.ARGB32, false);
 
@@ -152,8 +154,6 @@ public class BakingScript : MonoBehaviour
         }
         dataBuffer.SetData(data);
     }
-    
-    private Rect kRec = new Rect(0, 0, ImageResolution, ImageResolution);
 
     private void Update()
     {
@@ -165,7 +165,8 @@ public class BakingScript : MonoBehaviour
         index++;
         Progressbar.text = GetProgressText() ;
 
-        Compute.SetBuffer(computeKernel, "_SourceDataBuffer", rawDataSource.GetNextStep());
+        rawDataSource.SetNextStep();
+        Compute.SetBuffer(computeKernel, "_SourceDataBuffer", rawDataSource.PixelIndexValuesBuffer);
         
         int groupSize = Mathf.CeilToInt((float)FullResolution / DispatchGroupSize);
 
