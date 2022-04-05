@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class MainViewerScript : MonoBehaviour
 {
+    public const string OutputFolder = @"D:\Documents\PlaceViewer\New Folder\"; // Change this to a local folder
+
     public enum DisplayMode
     {
         ColorAndHeat,
@@ -37,23 +39,11 @@ public class MainViewerScript : MonoBehaviour
     public float Time;
 
     [Range(0, 1)]
-    public float TreeRingTopTime;
-
-    public bool LoadTreeRingTop;
-
-    [Range(0, 1)]
     public float ColorLerpSpeed;
-    
-    private string _outputFolder;
 
     public Material Mat;
-    public Material TreeRingTopMat;
-    public Material TreeRingBottomMat;
 
     private TextureLoader _mainTextureLoader;
-    private TextureLoader _treeRingTextureLoader;
-    
-    private const int DispatchGroupSize = 128;
 
     private string[] _texturePaths;
     
@@ -63,53 +53,18 @@ public class MainViewerScript : MonoBehaviour
     private float _currentHeatHeightAlpha;
     private float _currentLongevityHeightAlpha;
 
-    private bool _validFolder;
 
     void Start()
     {
-        if(!File.Exists(BakingScript.OutputPathFile))
-        {
-            System.Windows.Forms.FolderBrowserDialog outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog();
-
-            outputFolderDialog.Description = "Where is the processed PNG data?";
-            outputFolderDialog.ShowDialog();
-
-            _outputFolder = outputFolderDialog.SelectedPath;
-            _validFolder = Directory.Exists(_outputFolder);
-            if (_validFolder)
-            {
-                File.WriteAllText(BakingScript.OutputPathFile, _outputFolder);
-            }
-            else
-            {
-                return;
-            }
-        }
-        else
-        {
-            _validFolder = true;
-        }
-        _outputFolder = File.ReadAllText(BakingScript.OutputPathFile);
-        _texturePaths = Directory.GetFiles(_outputFolder);
-        _mainTextureLoader = new TextureLoader(Mat, TreeRingBottomMat);
-        _treeRingTextureLoader = new TextureLoader(TreeRingTopMat);
+        _texturePaths = Directory.GetFiles(OutputFolder);
+        _mainTextureLoader = new TextureLoader(Mat);
     }
     
     private void Update()
     {
-        if (!_validFolder)
-        {
-            return;
-        }
         UpdateColorModeProperties();
         UpdateHeightModeProperties();
         _mainTextureLoader.UpdateTexture(Time, _texturePaths);
-
-        TreeRingTopTime = Mathf.Max(Time, TreeRingTopTime);
-        if (LoadTreeRingTop)
-        {
-            _treeRingTextureLoader.UpdateTexture(TreeRingTopTime, _texturePaths);
-        }
 
         Mat.SetVector("_LightPos", Light.position);
     }

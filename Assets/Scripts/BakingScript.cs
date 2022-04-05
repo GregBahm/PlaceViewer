@@ -11,19 +11,8 @@ public class BakingScript : MonoBehaviour
     public bool WriteOutput;
 
     public bool DisplayLongevity;
-    
-    public string OutputFolder;
-    private bool _validFolder;
 
     public Material Mat;
-
-    public static string OutputPathFile
-    {
-        get
-        {
-            return Path.Combine(Application.persistentDataPath, "pngOutputFolder.txt");
-        }
-    }
 
     [Range(0, 1)]
     public float HeatBurst;
@@ -93,24 +82,6 @@ public class BakingScript : MonoBehaviour
 
     void Start()
     {
-        if (WriteOutput)
-        {
-            System.Windows.Forms.FolderBrowserDialog outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog();
-
-            outputFolderDialog.Description = "Where do you want to store the processed PNG data?";
-            outputFolderDialog.ShowDialog();
-            OutputFolder = outputFolderDialog.SelectedPath;
-            _validFolder = Directory.Exists(OutputFolder);
-            if (_validFolder)
-            {
-                File.WriteAllText(OutputPathFile, OutputFolder);
-            }
-            else
-            {
-                return;
-            }
-        }
-
         _computeKernel = Compute.FindKernel("CSMain");
         _occlusionKernel = Compute.FindKernel("OcclusionCompute");
         InitializeDataBuffer();
@@ -189,14 +160,6 @@ public class BakingScript : MonoBehaviour
 
     private void Update()
     {
-        if (WriteOutput)
-        {
-            if (!_validFolder)
-            {
-                Progressbar.text = "No valid output folder was selected.";
-                return;
-            }
-        }
         if(_diffLoader.CurrentDiffIndex == _diffLoader.TotalDiffCount)
         {
             Progressbar.text = "Processing Complete";
@@ -223,7 +186,7 @@ public class BakingScript : MonoBehaviour
         
         if(WriteOutput)
         {
-            string outputPath = Path.Combine(OutputFolder, _index.ToString("D8") + ".png");
+            string outputPath = Path.Combine(MainViewerScript.OutputFolder, _index.ToString("D8") + ".png");
             RenderTexture.active = _outputRenderTexture;
             _outputVessel.ReadPixels(kRec, 0, 0);
             RenderTexture.active = null;
