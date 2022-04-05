@@ -10,40 +10,40 @@ public class MotionDampenerScript : MonoBehaviour
     [Range(0, 1)]
     public float RotationLerp;
 
-    private Vector3 _lastPositionTarget;
-    private Quaternion _lastRotationTarget;
+    private Vector3 lastPositionTarget;
+    private Quaternion lastRotationTarget;
 
-    private Transform _lastTarget;
-    private Transform _theGrid;
+    private Transform lastTarget;
+    private Transform theGrid;
 
     void Start()
     {
-        _theGrid = transform.GetChild(0);
-        _lastPositionTarget = transform.position;
-        _lastRotationTarget = transform.rotation;
+        theGrid = transform.GetChild(0);
+        lastPositionTarget = transform.position;
+        lastRotationTarget = transform.rotation;
     }
 
 	void Update ()
     {
         if(Target == null)
         {
-            transform.position = Vector3.Lerp(transform.position, _lastPositionTarget, PositionLerp);
-            transform.rotation = Quaternion.Lerp(transform.rotation, _lastRotationTarget, RotationLerp);
+            transform.position = Vector3.Lerp(transform.position, lastPositionTarget, PositionLerp);
+            transform.rotation = Quaternion.Lerp(transform.rotation, lastRotationTarget, RotationLerp);
         }
         if (Target != null)
         {
-            if (Target != _lastTarget)
+            if (Target != lastTarget)
             {
-                _theGrid.parent = null;
+                theGrid.parent = null;
                 transform.position = Target.position;
                 transform.rotation = Target.rotation;
-                _theGrid.parent = transform;
+                theGrid.parent = transform;
             }
             transform.position = Vector3.Lerp(transform.position, Target.position, PositionLerp);
             transform.rotation = Quaternion.Lerp(transform.rotation, Target.rotation, RotationLerp);
-            _lastPositionTarget = Target.position;
-            _lastRotationTarget = Target.rotation;
+            lastPositionTarget = Target.position;
+            lastRotationTarget = Target.rotation;
         }
-        _lastTarget = Target;
+        lastTarget = Target;
 	}
 }

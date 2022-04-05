@@ -7,7 +7,7 @@ using System.Linq;
 using UnityEngine;
 
 // DiffLoader consumes the r/Place diffs.bin.gz provided by Reddit
-public class DiffLoader : ISourceDataFeeder
+public class DiffLoader : IRawDataSource
 {
     private int timestampInSeconds;
     private int xPos;
@@ -32,7 +32,7 @@ public class DiffLoader : ISourceDataFeeder
         currentImage = new ComputeBuffer(1024 * 1024, sizeof(uint));
 	}
 	
-	public ComputeBuffer GetNextTimeslice()
+	public ComputeBuffer GetNextStep()
     {
         int startingTmestamp = timestampInSeconds;
 
@@ -95,7 +95,7 @@ public class DiffLoader : ISourceDataFeeder
 }
 
 // ScreenshotLoader consumes a library of .pngs, if a gzip of diffs has not been provided 
-public class ScreenshotLoader : ISourceDataFeeder
+public class ScreenshotLoader : IRawDataSource
 {
     public const string RawImagesFolder = @"F:\rPlace2022\latest\images_single\"; // Replace this with yer local folder
     private string[] images;
@@ -114,7 +114,7 @@ public class ScreenshotLoader : ISourceDataFeeder
         images = Directory.GetFiles(RawImagesFolder).OrderBy(item => item).ToArray(); // Alphabetical order
     }
 
-    public ComputeBuffer GetNextTimeslice()
+    public ComputeBuffer GetNextStep()
     {
         throw new NotImplementedException();
         index++;
@@ -126,9 +126,9 @@ public class ScreenshotLoader : ISourceDataFeeder
     }
 }
 
-public interface ISourceDataFeeder
+public interface IRawDataSource
 {
-    ComputeBuffer GetNextTimeslice();
+    ComputeBuffer GetNextStep();
     int CurrentStepIndex { get; }
     int TotalSteps { get; }
     void Dispose();

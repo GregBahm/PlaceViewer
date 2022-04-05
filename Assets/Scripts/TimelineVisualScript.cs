@@ -16,11 +16,11 @@ public class TimelineVisualScript : MonoBehaviour
     public Transform TimeContainerUi;
     public Transform TimeConnectorUi;
     
-    private float _timeUiScale;
+    private float timeUiScale;
 
     void Start()
     {
-        _timeUiScale = (TimeStartUi.position - TimeEndUi.position).magnitude;
+        timeUiScale = (TimeStartUi.position - TimeEndUi.position).magnitude;
     }
     private void Update()
     {
@@ -33,8 +33,8 @@ public class TimelineVisualScript : MonoBehaviour
         MainTimelineControl.transform.position = Needlehead.position;
         MainTimelineControl.transform.rotation = Needlehead.rotation;
         CurrentTimeUi.localPosition = Vector3.zero;
-        float startOffset = _timeUiScale * MainScript.Time;
-        float endOffset = _timeUiScale * (1 - MainScript.Time);
+        float startOffset = timeUiScale * MainScript.Time;
+        float endOffset = timeUiScale * (1 - MainScript.Time);
         TimeStartUi.localPosition = new Vector3(-startOffset, 0, 0);
         TimeEndUi.localPosition = new Vector3(endOffset, 0, 0);
         TimeContainerUi.position = (TimeStartUi.position + TimeEndUi.position) / 2;

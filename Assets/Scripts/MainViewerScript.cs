@@ -43,28 +43,28 @@ public class MainViewerScript : MonoBehaviour
 
     public Material Mat;
 
-    private TextureLoader _mainTextureLoader;
+    private TextureLoader mainTextureLoader;
 
-    private string[] _texturePaths;
+    private string[] texturePaths;
     
-    private float _currentHeatAlpha;
-    private float _currentLongevityAlpha;
+    private float currentHeatAlpha;
+    private float currentLongevityAlpha;
 
-    private float _currentHeatHeightAlpha;
-    private float _currentLongevityHeightAlpha;
+    private float currentHeatHeightAlpha;
+    private float currentLongevityHeightAlpha;
 
 
     void Start()
     {
-        _texturePaths = Directory.GetFiles(OutputFolder);
-        _mainTextureLoader = new TextureLoader(Mat);
+        texturePaths = Directory.GetFiles(OutputFolder);
+        mainTextureLoader = new TextureLoader(Mat);
     }
     
     private void Update()
     {
         UpdateColorModeProperties();
         UpdateHeightModeProperties();
-        _mainTextureLoader.UpdateTexture(Time, _texturePaths);
+        mainTextureLoader.UpdateTexture(Time, texturePaths);
 
         Mat.SetVector("_LightPos", Light.position);
     }
@@ -73,20 +73,20 @@ public class MainViewerScript : MonoBehaviour
     {
         float baseHeatHeightTarget = CurrentHeightMode == HeightMode.Heat ? 1 : 0;
         float baseLongevityHeightTarget = CurrentHeightMode == HeightMode.Longevity ? 1 : 0;
-        _currentHeatHeightAlpha = Mathf.Lerp(_currentHeatHeightAlpha, baseHeatHeightTarget, ColorLerpSpeed);
-        _currentLongevityHeightAlpha = Mathf.Lerp(_currentLongevityHeightAlpha, baseLongevityHeightTarget, ColorLerpSpeed);
-        Mat.SetFloat("_HeatHeightAlpha", _currentHeatHeightAlpha);
-        Mat.SetFloat("_LongevityHeightAlpha", _currentLongevityHeightAlpha);
+        currentHeatHeightAlpha = Mathf.Lerp(currentHeatHeightAlpha, baseHeatHeightTarget, ColorLerpSpeed);
+        currentLongevityHeightAlpha = Mathf.Lerp(currentLongevityHeightAlpha, baseLongevityHeightTarget, ColorLerpSpeed);
+        Mat.SetFloat("_HeatHeightAlpha", currentHeatHeightAlpha);
+        Mat.SetFloat("_LongevityHeightAlpha", currentLongevityHeightAlpha);
     }
 
     private void UpdateColorModeProperties()
     {
         float heatTarget = CurrentColorMode == ColorMode.Heat ? 1 : 0;
         float longevityTarget = CurrentColorMode == ColorMode.Longevity ? 1 : 0;
-        _currentHeatAlpha = Mathf.Lerp(_currentHeatAlpha, heatTarget, ColorLerpSpeed);
-        _currentLongevityAlpha = Mathf.Lerp(_currentLongevityAlpha, longevityTarget, ColorLerpSpeed);
-        Mat.SetFloat("_HeatAlpha", _currentHeatAlpha);
-        Mat.SetFloat("_LongevityAlpha", _currentLongevityAlpha);
+        currentHeatAlpha = Mathf.Lerp(currentHeatAlpha, heatTarget, ColorLerpSpeed);
+        currentLongevityAlpha = Mathf.Lerp(currentLongevityAlpha, longevityTarget, ColorLerpSpeed);
+        Mat.SetFloat("_HeatAlpha", currentHeatAlpha);
+        Mat.SetFloat("_LongevityAlpha", currentLongevityAlpha);
     }
 
     internal void SetDisplayMode(DisplayMode displayMode)
@@ -115,41 +115,41 @@ public class MainViewerScript : MonoBehaviour
 
     class TextureLoader
     {
-        private int _lastLoadedTextureIndex;
+        private int lastLoadedTextureIndex;
         
-        private Texture2D _inputTexture;
-        private byte[] _inputPngData;
+        private Texture2D inputTexture;
+        private byte[] inputPngData;
 
-        private Material[] _mats;
+        private Material[] mats;
 
         public TextureLoader(params Material[] mats)
         {
-            _mats = mats;
-            _inputTexture = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
-            _inputTexture.filterMode = FilterMode.Point;
-            _inputTexture.wrapMode = TextureWrapMode.Clamp;
+            this.mats = mats;
+            inputTexture = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
+            inputTexture.filterMode = FilterMode.Point;
+            inputTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
         public void UpdateTexture(float time, string[] texturePaths)
         {
             int textureIndex = (int)Mathf.Min(texturePaths.Length * time, texturePaths.Length - 1);
 
-            if (textureIndex != _lastLoadedTextureIndex)
+            if (textureIndex != lastLoadedTextureIndex)
             {
                 LoadTexture(textureIndex, texturePaths);
-                _lastLoadedTextureIndex = textureIndex;
+                lastLoadedTextureIndex = textureIndex;
             }
         }
 
         private void LoadTexture(int textureIndex, string[] texturePaths)
         {
             string path = texturePaths[textureIndex];
-            _inputPngData = File.ReadAllBytes(path);
-            _inputTexture.LoadImage(_inputPngData);
+            inputPngData = File.ReadAllBytes(path);
+            inputTexture.LoadImage(inputPngData);
 
-            foreach (Material mat in _mats)
+            foreach (Material mat in mats)
             {
-                mat.SetTexture("_MainTex", _inputTexture);
+                mat.SetTexture("_MainTex", inputTexture);
             }
         }
     }

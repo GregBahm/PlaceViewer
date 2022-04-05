@@ -12,16 +12,16 @@ public class TooltipScript : MonoBehaviour
 
     public Material ButtonMaterial;
 
-    private TextMesh _text;
-    private Color _litTextColor;
-    private Color _unlitTextColor;
-    private Color _buttonColor;
+    private TextMesh text;
+    private Color litTextColor;
+    private Color unlitTextColor;
+    private Color buttonColor;
 
 	void Start ()
     {
-        _text = GetComponent<TextMesh>();
-        _litTextColor = _text.color;
-        _unlitTextColor = new Color(_litTextColor.r, _litTextColor.g, _litTextColor.b, 0);
+        text = GetComponent<TextMesh>();
+        litTextColor = text.color;
+        unlitTextColor = new Color(litTextColor.r, litTextColor.g, litTextColor.b, 0);
 	}
 	
 	void Update ()
@@ -29,11 +29,11 @@ public class TooltipScript : MonoBehaviour
         Vector3 toTooltip = Camera.main.transform.position - transform.position;
         float angleToCamera = -Vector3.Dot(toTooltip.normalized, Camera.main.transform.forward);
         bool showTooltip = angleToCamera > ShowTooltipAngle;
-        Color textTarget = showTooltip ? _litTextColor : _unlitTextColor;
-        Color buttonTarget = showTooltip ? _litTextColor : Color.black;
+        Color textTarget = showTooltip ? litTextColor : unlitTextColor;
+        Color buttonTarget = showTooltip ? litTextColor : Color.black;
 
-        _text.color = Color.Lerp(_text.color, textTarget, FadeSpeed);
-        _buttonColor = Color.Lerp(_buttonColor, buttonTarget, FadeSpeed);
-        ButtonMaterial.SetColor("_FocusColor", _buttonColor);
+        text.color = Color.Lerp(text.color, textTarget, FadeSpeed);
+        buttonColor = Color.Lerp(buttonColor, buttonTarget, FadeSpeed);
+        ButtonMaterial.SetColor("_FocusColor", buttonColor);
 	}
 }

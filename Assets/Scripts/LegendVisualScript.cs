@@ -15,30 +15,30 @@ public class LegendVisualScript : MonoBehaviour
     public Material LegendMat;
     
     public Material LegendColorTextMat;
-    private TextMaterialManager _colorText;
+    private TextMaterialManager colorText;
     public Material LegendHeatTextMat;
-    private TextMaterialManager _heatText;
+    private TextMaterialManager heatText;
     public Material LegendLongevityTextMat;
-    private TextMaterialManager _longevityText;
+    private TextMaterialManager longevityText;
     public Material LegendHeatVerticalTextMat;
-    private TextMaterialManager _heatVerticalText;
+    private TextMaterialManager heatVerticalText;
 
-    private TextMaterialManager[] _managers;
+    private TextMaterialManager[] managers;
 
     public Color MatTextColor;
     
-    private bool _shownHeight;
+    private bool shownHeight;
 
-    private float _currentHeatAlpha;
-    private float _currentLongevityAlpha;
+    private float currentHeatAlpha;
+    private float currentLongevityAlpha;
 
-    private Animator _animator;
+    private Animator animator;
     
     private void Start()
     {
-        _animator = GetComponent<Animator>();
-        _animator.SetBool("HasHeight", ShowingHeight);
-        if (_managers == null)
+        animator = GetComponent<Animator>();
+        animator.SetBool("HasHeight", ShowingHeight);
+        if (managers == null)
         {
             InitializeManagers();
         }
@@ -46,13 +46,13 @@ public class LegendVisualScript : MonoBehaviour
 
     private void Update()
     {
-        if(ShowingHeight != _shownHeight)
+        if(ShowingHeight != shownHeight)
         {
-            _animator.SetBool("HasHeight", ShowingHeight);
-            _shownHeight = ShowingHeight;
+            animator.SetBool("HasHeight", ShowingHeight);
+            shownHeight = ShowingHeight;
         }
         UpdateColorModeProperties();
-        foreach (TextMaterialManager manager in _managers)
+        foreach (TextMaterialManager manager in managers)
         {
             manager.Update(MatTextColor, ColorLerpSpeed);
         }
@@ -62,20 +62,20 @@ public class LegendVisualScript : MonoBehaviour
     {
         float heatTarget = CurrentColorMode == MainViewerScript.ColorMode.Heat ? 1 : 0;
         float longevityTarget = CurrentColorMode == MainViewerScript.ColorMode.Longevity ? 1 : 0;
-        _currentHeatAlpha = Mathf.Lerp(_currentHeatAlpha, heatTarget, ColorLerpSpeed);
-        _currentLongevityAlpha = Mathf.Lerp(_currentLongevityAlpha, longevityTarget, ColorLerpSpeed);
-        LegendMat.SetFloat("_HeatAlpha", _currentHeatAlpha);
-        LegendMat.SetFloat("_LongevityAlpha", _currentLongevityAlpha);
+        currentHeatAlpha = Mathf.Lerp(currentHeatAlpha, heatTarget, ColorLerpSpeed);
+        currentLongevityAlpha = Mathf.Lerp(currentLongevityAlpha, longevityTarget, ColorLerpSpeed);
+        LegendMat.SetFloat("_HeatAlpha", currentHeatAlpha);
+        LegendMat.SetFloat("_LongevityAlpha", currentLongevityAlpha);
     }
 
     internal void SetDisplayMode(MainViewerScript.DisplayMode displayMode)
     {
-        if(_managers == null)
+        if(managers == null)
         {
             InitializeManagers();
         }
 
-        foreach (TextMaterialManager manager in _managers)
+        foreach (TextMaterialManager manager in managers)
         {
             manager.MatAlphaTarget = 0;
         }
@@ -84,35 +84,35 @@ public class LegendVisualScript : MonoBehaviour
             case MainViewerScript.DisplayMode.ColorAndHeat:
                 ShowingHeight = true;
                 CurrentColorMode = MainViewerScript.ColorMode.BaseColor;
-                _colorText.MatAlphaTarget = 1;
-                _heatVerticalText.MatAlphaTarget = 1;
+                colorText.MatAlphaTarget = 1;
+                heatVerticalText.MatAlphaTarget = 1;
                 break;
             case MainViewerScript.DisplayMode.FullHeat:
                 CurrentColorMode = MainViewerScript.ColorMode.Heat;
                 ShowingHeight = true;
-                _heatText.MatAlphaTarget = 1;
+                heatText.MatAlphaTarget = 1;
                 break;
             case MainViewerScript.DisplayMode.FullLongevity:
                 CurrentColorMode = MainViewerScript.ColorMode.Longevity;
                 ShowingHeight = true;
-                _longevityText.MatAlphaTarget = 1;
+                longevityText.MatAlphaTarget = 1;
                 break;
             case MainViewerScript.DisplayMode.FlatColor:
             default:
                 CurrentColorMode = MainViewerScript.ColorMode.BaseColor;
                 ShowingHeight = false;
-                _colorText.MatAlphaTarget = 1;
+                colorText.MatAlphaTarget = 1;
                 break;
         }
     }
 
     private void InitializeManagers()
     {
-        _colorText = new TextMaterialManager(LegendColorTextMat);
-        _heatText = new TextMaterialManager(LegendHeatTextMat);
-        _longevityText = new TextMaterialManager(LegendLongevityTextMat);
-        _heatVerticalText = new TextMaterialManager(LegendHeatVerticalTextMat);
-        _managers = new TextMaterialManager[] { _colorText, _heatText, _longevityText, _heatVerticalText };
+        colorText = new TextMaterialManager(LegendColorTextMat);
+        heatText = new TextMaterialManager(LegendHeatTextMat);
+        longevityText = new TextMaterialManager(LegendLongevityTextMat);
+        heatVerticalText = new TextMaterialManager(LegendHeatVerticalTextMat);
+        managers = new TextMaterialManager[] { colorText, heatText, longevityText, heatVerticalText };
     }
 
     class TextMaterialManager

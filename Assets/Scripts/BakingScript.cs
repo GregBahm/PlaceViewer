@@ -29,30 +29,30 @@ public class BakingScript : MonoBehaviour
 
     public Text Progressbar;
 
-    private int _index;
+    private int index;
 
     private const int ImageResolution = 1024;
     private const int FullResolution = ImageResolution * ImageResolution;
 
 
-    private ISourceDataFeeder _diffLoader;
+    private IRawDataSource rawDataSource;
 
-    private int _computeKernel;
-    private int _occlusionKernel;
+    private int computeKernel;
+    private int occlusionKernel;
 
-    private ComputeBuffer _dataBuffer;
-    private int _dataBufferStride = sizeof(float) * 2 + sizeof(float) + sizeof(uint) + sizeof(float) * 16;
+    private ComputeBuffer dataBuffer;
+    private int dataBufferStride = sizeof(float) * 2 + sizeof(float) + sizeof(uint) + sizeof(float) * 16;
 
-    private ComputeBuffer _gridBuffer;
-    private int _gridBufferStride = sizeof(float) * 2;
+    private ComputeBuffer gridBuffer;
+    private int gridBufferStride = sizeof(float) * 2;
     
     private const int DispatchGroupSize = 128;
     
-    private byte[] _outputPngData;
+    private byte[] outputPngData;
 
-    private Texture2D _outputVessel;
-    private RenderTexture _intermediateRenderTexture;
-    private RenderTexture _outputRenderTexture;
+    private Texture2D outputVessel;
+    private RenderTexture intermediateRenderTexture;
+    private RenderTexture outputRenderTexture;
 
     struct ParticleData
     {
@@ -79,22 +79,22 @@ public class BakingScript : MonoBehaviour
 
     void Start()
     {
-        _computeKernel = Compute.FindKernel("CSMain");
-        _occlusionKernel = Compute.FindKernel("OcclusionCompute");
+        computeKernel = Compute.FindKernel("CSMain");
+        occlusionKernel = Compute.FindKernel("OcclusionCompute");
         InitializeDataBuffer();
         InitializeGridBuffer();
         
-        _diffLoader = new DiffLoader();
+        rawDataSource = new DiffLoader();
         
-        _outputVessel = new Texture2D(ImageResolution, ImageResolution, TextureFormat.ARGB32, false);
+        outputVessel = new Texture2D(ImageResolution, ImageResolution, TextureFormat.ARGB32, false);
 
-        _intermediateRenderTexture = new RenderTexture(ImageResolution, ImageResolution, 0, RenderTextureFormat.ARGB32);
-        _intermediateRenderTexture.filterMode = FilterMode.Point;
-        _intermediateRenderTexture.wrapMode = TextureWrapMode.Clamp;
-        _intermediateRenderTexture.enableRandomWrite = true;
-        _intermediateRenderTexture.Create();
+        intermediateRenderTexture = new RenderTexture(ImageResolution, ImageResolution, 0, RenderTextureFormat.ARGB32);
+        intermediateRenderTexture.filterMode = FilterMode.Point;
+        intermediateRenderTexture.wrapMode = TextureWrapMode.Clamp;
+        intermediateRenderTexture.enableRandomWrite = true;
+        intermediateRenderTexture.Create();
 
-        _outputRenderTexture = GetRenderTexture();
+        outputRenderTexture = GetRenderTexture();
     }
 
     private Texture2D GetInputTexture()
@@ -125,7 +125,7 @@ public class BakingScript : MonoBehaviour
 
     private void InitializeGridBuffer()
     {
-        _gridBuffer = new ComputeBuffer(FullResolution, _gridBufferStride);
+        gridBuffer = new ComputeBuffer(FullResolution, gridBufferStride);
         Vector2[] data = new Vector2[FullResolution];
         for (int i = 0; i < ImageResolution; i++)
         {
@@ -135,12 +135,12 @@ public class BakingScript : MonoBehaviour
                 data[i * ImageResolution + j] = position;
             }
         }
-        _gridBuffer.SetData(data);
+        gridBuffer.SetData(data);
     }
 
     private void InitializeDataBuffer()
     {
-        _dataBuffer = new ComputeBuffer(FullResolution, _dataBufferStride);
+        dataBuffer = new ComputeBuffer(FullResolution, dataBufferStride);
         ParticleData[] data = new ParticleData[FullResolution];
         for (int i = 0; i < ImageResolution; i++)
         {
@@ -150,60 +150,60 @@ public class BakingScript : MonoBehaviour
                 data[i * ImageResolution + j] = new ParticleData() {SourcePosition = sourcePosition};
             }
         }
-        _dataBuffer.SetData(data);
+        dataBuffer.SetData(data);
     }
     
     private Rect kRec = new Rect(0, 0, ImageResolution, ImageResolution);
 
     private void Update()
     {
-        if(_diffLoader.CurrentStepIndex == _diffLoader.TotalSteps)
+        if(rawDataSource.CurrentStepIndex == rawDataSource.TotalSteps)
         {
             Progressbar.text = "Processing Complete";
             return;
         }
-        _index++;
+        index++;
         Progressbar.text = GetProgressText() ;
 
-        Compute.SetBuffer(_computeKernel, "_SourceDataBuffer", _diffLoader.GetNextTimeslice());
+        Compute.SetBuffer(computeKernel, "_SourceDataBuffer", rawDataSource.GetNextStep());
         
         int groupSize = Mathf.CeilToInt((float)FullResolution / DispatchGroupSize);
 
-        Compute.SetFloat("_FrameIndex", _index);
+        Compute.SetFloat("_FrameIndex", index);
         Compute.SetFloat("_HeatBurst", HeatBurst);
         Compute.SetFloat("_HeatDecay", HeatDecay);
-        Compute.SetBuffer(_computeKernel, "_DataBuffer", _dataBuffer);
-        Compute.SetTexture(_computeKernel, "OutputTexture", _intermediateRenderTexture);
-        Compute.Dispatch(_computeKernel, groupSize, 1, 1);
+        Compute.SetBuffer(computeKernel, "_DataBuffer", dataBuffer);
+        Compute.SetTexture(computeKernel, "OutputTexture", intermediateRenderTexture);
+        Compute.Dispatch(computeKernel, groupSize, 1, 1);
 
-        Compute.SetBuffer(_occlusionKernel, "_DataBuffer", _dataBuffer);
-        Compute.SetTexture(_occlusionKernel, "OcclusionInputTexture", _intermediateRenderTexture);
-        Compute.SetTexture(_occlusionKernel, "OutputTexture", _outputRenderTexture);
-        Compute.Dispatch(_occlusionKernel, groupSize, 1, 1);
+        Compute.SetBuffer(occlusionKernel, "_DataBuffer", dataBuffer);
+        Compute.SetTexture(occlusionKernel, "OcclusionInputTexture", intermediateRenderTexture);
+        Compute.SetTexture(occlusionKernel, "OutputTexture", outputRenderTexture);
+        Compute.Dispatch(occlusionKernel, groupSize, 1, 1);
         
         if(WriteOutput)
         {
-            string outputPath = Path.Combine(MainViewerScript.OutputFolder, _index.ToString("D8") + ".png");
-            RenderTexture.active = _outputRenderTexture;
-            _outputVessel.ReadPixels(kRec, 0, 0);
+            string outputPath = Path.Combine(MainViewerScript.OutputFolder, index.ToString("D8") + ".png");
+            RenderTexture.active = outputRenderTexture;
+            outputVessel.ReadPixels(kRec, 0, 0);
             RenderTexture.active = null;
-            _outputPngData = _outputVessel.EncodeToPNG();
-            File.WriteAllBytes(outputPath, _outputPngData);
+            outputPngData = outputVessel.EncodeToPNG();
+            File.WriteAllBytes(outputPath, outputPngData);
         }
 
         Mat.SetFloat("_LongevityHeightAlpha", DisplayLongevity ? 1 : 0);
         Mat.SetFloat("_HeatHeightAlpha", DisplayLongevity ? 0 : 1);
         Mat.SetFloat("_LongevityAlpha", DisplayLongevity ? 1 : 0);
         Mat.SetFloat("_HeatAlpha", 0);
-        Mat.SetTexture("_MainTex", _outputRenderTexture);
+        Mat.SetTexture("_MainTex", outputRenderTexture);
     }
 
     private string GetProgressText()
     {
-        int diffIndex = Math.Max(_diffLoader.CurrentStepIndex, 1);// Prevent divide by zero later on
-        float prog = (float)diffIndex / _diffLoader.TotalSteps;
+        int diffIndex = Math.Max(rawDataSource.CurrentStepIndex, 1);// Prevent divide by zero later on
+        float prog = (float)diffIndex / rawDataSource.TotalSteps;
         int percent = (int)(100 * prog);
-        string ret = _diffLoader.CurrentStepIndex + " of " + _diffLoader.TotalSteps
+        string ret = rawDataSource.CurrentStepIndex + " of " + rawDataSource.TotalSteps
             + "\n" + percent + "% complete";
         
         return ret;
@@ -211,7 +211,7 @@ public class BakingScript : MonoBehaviour
 
     private void OnDestroy()
     {
-        _diffLoader.Dispose();
+        rawDataSource.Dispose();
     }
 }
 
