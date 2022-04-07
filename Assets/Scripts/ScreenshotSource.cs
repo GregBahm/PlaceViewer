@@ -8,7 +8,7 @@ using UnityEngine;
 // Outputs a compute buffer set with color index values
 public class ScreenshotSource : IRawDataSource
 {
-    public const string RawImagesFolder = @"F:\rPlace2022\latest\images_single\"; // Replace this with yer local folder
+    public const string RawImagesFolder = @"F:\rPlace2022\latest\images_single\"; // Replace this with your local folder
     private string[] images;
     private byte[] rawImageData;
     private Texture2D imageVessel;
