@@ -1,11 +1,14 @@
-*.vs
-*.csproj
-*.sln
-*.vsconfig
+GzipUnzipper/GZipUnzipper/bin
+GzipUnzipper/GZipUnzipper/obj
 
-/Library
-/Logs
-/Temp
-/obj
-/UserSettings
-/.vs
+*.vs
+PlaceViewerUnity/*.csproj
+PlaceViewerUnity/*.sln
+PlaceViewerUnity/*.vsconfig
+
+PlaceViewerUnity/Library
+PlaceViewerUnity/Logs
+PlaceViewerUnity/Temp
+PlaceViewerUnity/obj
+PlaceViewerUnity/UserSettings
+PlaceViewerUnity/.vs
