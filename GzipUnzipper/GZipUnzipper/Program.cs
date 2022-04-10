@@ -19,10 +19,35 @@ namespace GZipUnzipper
 
         static void Main(string[] args)
         {
-            SortDataChronologically();
+            //ValidateData();
+            //ChunkTheData();
+            SortTheChunks();
         }
 
-        private static void SortDataChronologically()
+        private static void SortTheChunks()
+        {
+            string[] files = Directory.GetFiles(SortingFilesFolder);
+            foreach (string file in files)
+            {
+                SortingFile(file);
+            }
+        }
+
+        private static void SortingFile(string file)
+        {
+            List<string> lines = File.ReadAllLines(file).ToList();
+            string[] sorted = lines.OrderBy(item => GetTicks(item)).ToArray();
+
+            string outputPath = file.Replace("Sorting", "Sorted");
+            File.WriteAllLines(outputPath, sorted);
+        }
+
+        private static object GetTicks(string item)
+        {
+            return Convert.ToInt64(item.Split(' ')[0]);
+        }
+
+        private static void ChunkTheData()
         {
             ChunkerTable table = new ChunkerTable(chunksCount);
 
@@ -43,13 +68,13 @@ namespace GZipUnzipper
 
             private const long start = 637844138503150000;
             private const long end = 637847144402070000;
-            private const long span = end - start;
-            private readonly int chunkSpan;
+            private const double span = end - start;
+            private readonly double chunkSpan;
 
             public ChunkerTable(int chunksCount)
             {
                 this.chunksCount = chunksCount;
-                chunkSpan = (int)(span / chunksCount);
+                chunkSpan = span / (chunksCount + 1);
                 chunkers = CreateChunkers();
             }
 
@@ -72,8 +97,14 @@ namespace GZipUnzipper
             private int GetChunkIndex(string line)
             {
                 long ticks = Convert.ToInt64(line.Split(' ')[0]);
-                long fromStart = ticks - start;
-                return (int)(fromStart / chunkSpan);
+                if(ticks == start)
+                {
+                    Console.WriteLine("Let's see here...");
+                }
+                double fromStart = ticks - start;
+                int ret = (int)(fromStart / chunkSpan);
+                ret = Math.Min(ret, chunksCount - 1);
+                return ret;
             }
 
             public void Dispose()
@@ -105,8 +136,8 @@ namespace GZipUnzipper
 
             public void Dispose()
             {
-                outputFileStream.Close();
-                streamWriter.Close();
+                streamWriter.Dispose();
+                outputFileStream.Dispose();
             }
         }
 

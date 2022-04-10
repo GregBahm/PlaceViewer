@@ -66,6 +66,7 @@
 			};
 
 			sampler2D _MainTex;
+			float4 _MainTex_ST;
 			sampler2D _PixelIndexLut;
 			sampler2D _HeatLut;
 			sampler2D _LongevityLut;
@@ -125,9 +126,9 @@
 			v2g vert (appdata v)
 			{
 				v2g o;
-				v.uv.x = 1 - v.uv.x;
-				v.uv *= (float)SourceResolution / RealResolution;
-				o.uv = v.uv;
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				o.uv.xy = 1 - o.uv.xy;
+				o.uv *= (float)SourceResolution / RealResolution;
 				o.vertex = v.vertex;
 				return o;
 			}

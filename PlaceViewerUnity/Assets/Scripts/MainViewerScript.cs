@@ -43,7 +43,7 @@ public class MainViewerScript : MonoBehaviour
     [Range(0, 1)]
     public float ColorLerpSpeed;
 
-    public Material Mat;
+    public Material[] Materials;
 
     private TextureLoader mainTextureLoader;
 
@@ -59,7 +59,7 @@ public class MainViewerScript : MonoBehaviour
     void Start()
     {
         texturePaths = Directory.GetFiles(OutputFolder);
-        mainTextureLoader = new TextureLoader(Mat);
+        mainTextureLoader = new TextureLoader(Materials);
     }
     
     private void Update()
@@ -68,7 +68,7 @@ public class MainViewerScript : MonoBehaviour
         UpdateHeightModeProperties();
         mainTextureLoader.UpdateTexture(Time, texturePaths);
 
-        Mat.SetVector("_LightPos", Light.position);
+        Shader.SetGlobalVector("_LightPos", Light.position);
     }
 
     private void UpdateHeightModeProperties()
@@ -77,8 +77,8 @@ public class MainViewerScript : MonoBehaviour
         float baseLongevityHeightTarget = CurrentHeightMode == HeightMode.Longevity ? 1 : 0;
         currentHeatHeightAlpha = Mathf.Lerp(currentHeatHeightAlpha, baseHeatHeightTarget, ColorLerpSpeed);
         currentLongevityHeightAlpha = Mathf.Lerp(currentLongevityHeightAlpha, baseLongevityHeightTarget, ColorLerpSpeed);
-        Mat.SetFloat("_HeatHeightAlpha", currentHeatHeightAlpha);
-        Mat.SetFloat("_LongevityHeightAlpha", currentLongevityHeightAlpha);
+        Shader.SetGlobalFloat("_HeatHeightAlpha", currentHeatHeightAlpha);
+        Shader.SetGlobalFloat("_LongevityHeightAlpha", currentLongevityHeightAlpha);
     }
 
     private void UpdateColorModeProperties()
@@ -87,8 +87,8 @@ public class MainViewerScript : MonoBehaviour
         float longevityTarget = CurrentColorMode == ColorMode.Longevity ? 1 : 0;
         currentHeatAlpha = Mathf.Lerp(currentHeatAlpha, heatTarget, ColorLerpSpeed);
         currentLongevityAlpha = Mathf.Lerp(currentLongevityAlpha, longevityTarget, ColorLerpSpeed);
-        Mat.SetFloat("_HeatAlpha", currentHeatAlpha);
-        Mat.SetFloat("_LongevityAlpha", currentLongevityAlpha);
+        Shader.SetGlobalFloat("_HeatAlpha", currentHeatAlpha);
+        Shader.SetGlobalFloat("_LongevityAlpha", currentLongevityAlpha);
     }
 
     internal void SetDisplayMode(DisplayMode displayMode)

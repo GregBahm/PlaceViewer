@@ -14,7 +14,7 @@ public class GZipSource : IRawDataSource
     public const long TimeStart = 637846304315770000;
     public const long TimeEnd = 637847144402070000;
 
-    private const string dataLocation = @"F:\rPlace2022\easy_formatted_data.txt"; // Set this to your local data location
+    private const string dataLocation = @"F:\rPlace2022\SortedFiles\"; // Generated from the GZipUnzipper methods
     public ComputeBuffer PixelIndexValuesBuffer { get; private set; }
 
     public int CurrentStepIndex { get; private set; }
@@ -25,48 +25,39 @@ public class GZipSource : IRawDataSource
     private long currentTimeLimit;
     private long timeStepSize;
 
-    private FileStream fileStream;
-    private StreamReader fileReader;
-
     string currentLine;
 
     public GZipSource()
     {
         colorData = new uint[MainViewerScript.ImageResolution * MainViewerScript.ImageResolution];
         PixelIndexValuesBuffer = new ComputeBuffer(MainViewerScript.ImageResolution * MainViewerScript.ImageResolution, sizeof(uint));
-        fileStream = File.Open(dataLocation, FileMode.Open);
-        fileReader = new StreamReader(fileStream);
 
         timeStepSize = (TimeEnd - TimeStart) / TotalSteps;
         currentTimeLimit = TimeStart;
-        currentLine = fileReader.ReadLine();
     }
 
     public void Dispose()
     {
-        fileStream.Dispose();
-        fileReader.Dispose();
         PixelIndexValuesBuffer.Dispose();
     }
 
     public void SetNextStep()
     {
         currentTimeLimit += timeStepSize;
-        do
+        string[] data = GetData();
+        foreach (string line in data)
         {
-            string[] lineComponents = currentLine.Split(' ');
-            long time = Convert.ToInt64(lineComponents[0]);
-            if (time < currentTimeLimit)
-            {
-                ProcessLine(lineComponents);
-            }
-            else
-            {
-                break;
-            }
-        } while ((currentLine = fileReader.ReadLine()) != null);
+            ProcessLine(line.Split(' '));
+        }
         PixelIndexValuesBuffer.SetData(colorData);
         CurrentStepIndex++;
+    }
+
+    private string[] GetData()
+    {
+        string[] files = Directory.GetFiles(dataLocation);
+        string file = files[CurrentStepIndex];
+        return File.ReadAllLines(file);
     }
 
     private void ProcessLine(string[] lineComponents)
