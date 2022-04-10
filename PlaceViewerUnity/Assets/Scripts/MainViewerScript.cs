@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class MainViewerScript : MonoBehaviour
 {
-    public const string OutputFolder = @"F:\rPlace2022\Output"; // Change this to a local folder
+    public const string OutputFolder = @"F:\rPlace2022\NewOutput"; // Change this to a local folder
 
     public enum DisplayMode
     {
