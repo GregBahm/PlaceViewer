@@ -30,9 +30,8 @@ public class BakingScript : MonoBehaviour
     public Text Progressbar;
 
     private int index;
-
-    private const int ImageResolution = 1024;
-    private const int FullResolution = ImageResolution * ImageResolution;
+    private const int ImageResolution = MainViewerScript.ImageResolution;
+    private const int FullResolution = MainViewerScript.ImageResolution * MainViewerScript.ImageResolution;
 
 
     private IRawDataSource rawDataSource;
@@ -105,8 +104,8 @@ public class BakingScript : MonoBehaviour
         InitializeDataBuffer();
         InitializeGridBuffer();
 
-        rawDataSource = new ScreenshotSource(); // new DiffSource();
-        
+        rawDataSource = new GZipSource(); // new ScreenshotSource();
+
         outputVessel = new Texture2D(ImageResolution, ImageResolution, TextureFormat.ARGB32, false);
 
         intermediateRenderTexture = new RenderTexture(ImageResolution, ImageResolution, 0, RenderTextureFormat.ARGB32);
@@ -116,22 +115,6 @@ public class BakingScript : MonoBehaviour
         intermediateRenderTexture.Create();
 
         outputRenderTexture = GetRenderTexture();
-    }
-
-    private Texture2D GetInputTexture()
-    {
-        Texture2D ret = new Texture2D(1024, 1024);
-        ret.filterMode = FilterMode.Point;
-        ret.wrapMode = TextureWrapMode.Clamp;
-        for (int i = 0; i < 1024; i++)
-        {
-            for (int j = 0; j < 1024; j++)
-            {
-                ret.SetPixel(i, j, Color.black);
-            }
-        }
-        ret.Apply();
-        return ret;
     }
 
     private RenderTexture GetRenderTexture()
@@ -234,6 +217,10 @@ public class BakingScript : MonoBehaviour
     private void OnDestroy()
     {
         rawDataSource.Dispose();
+        gridBuffer.Dispose();
+        dataBuffer.Dispose();
+        intermediateRenderTexture.Release();
+        outputRenderTexture.Release();
     }
 }
 

@@ -8,6 +8,8 @@ public class MainViewerScript : MonoBehaviour
 {
     public const string OutputFolder = @"F:\rPlace2022\NewOutput"; // Change this to a local folder
 
+    public const int ImageResolution = 2048;
+
     public enum DisplayMode
     {
         ColorAndHeat,
@@ -125,7 +127,7 @@ public class MainViewerScript : MonoBehaviour
         public TextureLoader(params Material[] mats)
         {
             this.mats = mats;
-            inputTexture = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
+            inputTexture = new Texture2D(ImageResolution, ImageResolution, TextureFormat.RGB24, false);
             inputTexture.filterMode = FilterMode.Point;
             inputTexture.wrapMode = TextureWrapMode.Clamp;
         }

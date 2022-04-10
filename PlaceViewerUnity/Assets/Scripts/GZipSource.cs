@@ -32,8 +32,8 @@ public class GZipSource : IRawDataSource
 
     public GZipSource()
     {
-        colorData = new uint[2048 * 2048];
-        PixelIndexValuesBuffer = new ComputeBuffer(2048 * 2048, sizeof(uint));
+        colorData = new uint[MainViewerScript.ImageResolution * MainViewerScript.ImageResolution];
+        PixelIndexValuesBuffer = new ComputeBuffer(MainViewerScript.ImageResolution * MainViewerScript.ImageResolution, sizeof(uint));
         fileStream = File.Open(dataLocation, FileMode.Open);
         fileReader = new StreamReader(fileStream);
 
@@ -46,6 +46,7 @@ public class GZipSource : IRawDataSource
     {
         fileStream.Dispose();
         fileReader.Dispose();
+        PixelIndexValuesBuffer.Dispose();
     }
 
     public void SetNextStep()
@@ -53,18 +54,15 @@ public class GZipSource : IRawDataSource
         currentTimeLimit += timeStepSize;
         do
         {
-            if(currentLine != null)
+            string[] lineComponents = currentLine.Split(' ');
+            long time = Convert.ToInt64(lineComponents[0]);
+            if (time < currentTimeLimit)
             {
-                string[] lineComponents = currentLine.Split(' ');
-                long time = Convert.ToInt64(lineComponents[0]);
-                if (time > currentTimeLimit)
-                {
-                    ProcessLine(lineComponents);
-                }
-                else
-                {
-                    break;
-                }
+                ProcessLine(lineComponents);
+            }
+            else
+            {
+                break;
             }
         } while ((currentLine = fileReader.ReadLine()) != null);
         PixelIndexValuesBuffer.SetData(colorData);
@@ -109,7 +107,7 @@ public class GZipSource : IRawDataSource
 
     private static int CoordsToIndex(int x, int y)
     {
-        return 2024 * y + x;
+        return MainViewerScript.ImageResolution * y + x;
     }
 
     private struct RectangleDiff
@@ -123,10 +121,10 @@ public class GZipSource : IRawDataSource
         public RectangleDiff(string[] lineComponents)
         {
             ColorIndex = (uint)Convert.ToInt32(lineComponents[1]);
-            X1Pos = Convert.ToInt32(lineComponents[1]);
-            Y1Pos = Convert.ToInt32(lineComponents[2]);
-            X2Pos = Convert.ToInt32(lineComponents[3]);
-            Y2Pos = Convert.ToInt32(lineComponents[4]);
+            X1Pos = Convert.ToInt32(lineComponents[2]);
+            Y1Pos = Convert.ToInt32(lineComponents[3]);
+            X2Pos = Convert.ToInt32(lineComponents[4]);
+            Y2Pos = Convert.ToInt32(lineComponents[5]);
 
             if(X1Pos > X2Pos)
             {
@@ -153,8 +151,8 @@ public class GZipSource : IRawDataSource
         public PixelDiff(string[] lineComponents)
         {
             ColorIndex = (uint)Convert.ToInt32(lineComponents[1]);
-            XPos = Convert.ToInt32(lineComponents[1]);
-            YPos = Convert.ToInt32(lineComponents[2]);
+            XPos = Convert.ToInt32(lineComponents[2]);
+            YPos = Convert.ToInt32(lineComponents[3]);
         }
     }
 }

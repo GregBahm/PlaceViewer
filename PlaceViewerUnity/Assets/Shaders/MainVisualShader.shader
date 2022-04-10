@@ -31,6 +31,9 @@
 			
 			#include "UnityCG.cginc"
 
+#define SourceResolution 2000
+#define RealResolution 2048
+
 			struct appdata
 			{
 				float4 vertex : POSITION;
@@ -123,7 +126,7 @@
 			{
 				v2g o;
 				v.uv.x = 1 - v.uv.x;
-				v.uv *= (float)1000 / 1024;
+				v.uv *= (float)SourceResolution / RealResolution;
 				o.uv = v.uv;
 				o.vertex = v.vertex;
 				return o;
@@ -176,7 +179,7 @@
 				g2f o,
 				inout TriangleStream<g2f> triStream)
 			{
-				const float halfPixelOffset = ((float)1000 / 1024) / 1000 / 2;
+				const float halfPixelOffset = ((float)SourceResolution / RealResolution) / SourceResolution / 2;
 				float2 left = float2(uvs.x - halfPixelOffset, uvs.y);
 				float2 right = float2(uvs.x + halfPixelOffset, uvs.y);
 				fixed4 leftPixel = tex2Dlod(_MainTex, float4(left, 0, 0));
@@ -264,7 +267,7 @@
 				g2f o,
 				inout TriangleStream<g2f> triStream)
 			{
-				const float halfPixelOffset = ((float)1000 / 1024) / 1000 / 2;
+				const float halfPixelOffset = ((float)SourceResolution / RealResolution) / SourceResolution / 2;
 				float2 north = float2(uvs.x , uvs.y + halfPixelOffset);
 				float2 south = float2(uvs.x, uvs.y - halfPixelOffset);
 				fixed4 northPixel = tex2Dlod(_MainTex, float4(north, 0, 0));
