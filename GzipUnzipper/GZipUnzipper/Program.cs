@@ -12,9 +12,128 @@ namespace GZipUnzipper
         static string HappyFormatFileName = @"F:\rPlace2022\easy_formatted_data.txt"; // Target output file
         static string LinesCountFile = @"F:\rPlace2022\linesCount.txt";
 
+        static string SortingFilesFolder = @"F:\rPlace2022\SortingFiles\";
+        static int chunksCount = 1000;
+
         public static PlaceTwentyTwentyTwoColorPalette Colors = new PlaceTwentyTwentyTwoColorPalette();
 
         static void Main(string[] args)
+        {
+            SortDataChronologically();
+        }
+
+        private static void SortDataChronologically()
+        {
+            ChunkerTable table = new ChunkerTable(chunksCount);
+
+            using FileStream data = File.Open(HappyFormatFileName, FileMode.Open);
+            using StreamReader streamReader = new StreamReader(data);
+            string line;
+            while ((line = streamReader.ReadLine()) != null)
+            {
+                table.ChunkLine(line);
+            }
+            table.Dispose();
+        }
+
+        private class ChunkerTable
+        {
+            private readonly Chunker[] chunkers;
+            private readonly int chunksCount;
+
+            private const long start = 637844138503150000;
+            private const long end = 637847144402070000;
+            private const long span = end - start;
+            private readonly int chunkSpan;
+
+            public ChunkerTable(int chunksCount)
+            {
+                this.chunksCount = chunksCount;
+                chunkSpan = (int)(span / chunksCount);
+                chunkers = CreateChunkers();
+            }
+
+            private Chunker[] CreateChunkers()
+            {
+                Chunker[] ret = new Chunker[chunksCount];
+                for (int i = 0; i < chunksCount; i++)
+                {
+                    ret[i] = new Chunker(i);
+                }
+                return ret;
+            }
+
+            public void ChunkLine(string line)
+            {
+                int chunksIndex = GetChunkIndex(line);
+                chunkers[chunksIndex].AddLine(line);
+            }
+
+            private int GetChunkIndex(string line)
+            {
+                long ticks = Convert.ToInt64(line.Split(' ')[0]);
+                long fromStart = ticks - start;
+                return (int)(fromStart / chunkSpan);
+            }
+
+            public void Dispose()
+            {
+                foreach (Chunker chunker in chunkers)
+                {
+                    chunker.Dispose();
+                }
+            }
+        }
+
+        private class Chunker
+        {
+            public string OutputPath { get; }
+            private readonly FileStream outputFileStream;
+            private readonly StreamWriter streamWriter;
+
+            public Chunker(int index)
+            {
+                OutputPath = SortingFilesFolder + index.ToString("D5") + ".txt";
+                outputFileStream = File.Create(OutputPath);
+                streamWriter = new StreamWriter(outputFileStream);
+            }
+
+            internal void AddLine(string line)
+            {
+                streamWriter.WriteLine(line);
+            }
+
+            public void Dispose()
+            {
+                outputFileStream.Close();
+                streamWriter.Close();
+            }
+        }
+
+        private static void ValidateData()
+        {
+            using FileStream outputFileStream = File.Open(HappyFormatFileName, FileMode.Open);
+            using StreamReader streamReader = new StreamReader(outputFileStream);
+            string line;
+            long minTicks = long.MaxValue;
+            long maxTicks = 0;
+            while ((line = streamReader.ReadLine()) != null)
+            {
+                long ticks = Convert.ToInt64(line.Split(' ')[0]);
+                if (ticks > maxTicks)
+                {
+                    maxTicks = ticks;
+                }
+                if (ticks < minTicks)
+                {
+                    minTicks = ticks;
+                }
+            }
+            DateTime maxTime = new DateTime(maxTicks);
+            DateTime minTime = new DateTime(minTicks);
+        }
+
+        private static void WriteFormattedData()
         {
             using FileStream compressedFileStream = File.Open(CompressedFileName, FileMode.Open);
             using FileStream outputFileStream = File.Create(HappyFormatFileName);
@@ -24,7 +143,7 @@ namespace GZipUnzipper
             string line;
             streamReader.ReadLine(); // Skip the header line
             long linesCount = 0;
-            while((line = streamReader.ReadLine()) != null)
+            while ((line = streamReader.ReadLine()) != null)
             {
                 string newLine = GetHappyFormattedLine(line);
                 streamWriter.WriteLine(newLine);
