@@ -13,15 +13,33 @@ namespace GZipUnzipper
         static string LinesCountFile = @"F:\rPlace2022\linesCount.txt";
 
         static string SortingFilesFolder = @"F:\rPlace2022\SortingFiles\";
+        static string SortedFilesFolder = @"F:\rPlace2022\SortedFiles\";
+        static string SortedDataFile = @"F:\rPlace2022\SortedData.txt";
         static int chunksCount = 1000;
 
         public static PlaceTwentyTwentyTwoColorPalette Colors = new PlaceTwentyTwentyTwoColorPalette();
 
         static void Main(string[] args)
         {
-            //ValidateData();
+            ValidateData();
             //ChunkTheData();
-            SortTheChunks();
+            //SortTheChunks();
+            //ReorganizeTheData();
+        }
+
+        private static void ReorganizeTheData()
+        {
+            string[] files = Directory.GetFiles(SortedFilesFolder);
+            using FileStream outputFileStream = File.Create(SortedDataFile);
+            using StreamWriter streamWriter = new StreamWriter(outputFileStream);
+            foreach (string file in files)
+            {
+                string[] lines = File.ReadAllLines(file);
+                foreach (string line in lines)
+                {
+                    streamWriter.WriteLine(line);
+                }
+            }
         }
 
         private static void SortTheChunks()

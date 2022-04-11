@@ -10,54 +10,61 @@ using UnityEngine;
 // Then this consumes that file a compute buffer of color index values, to be consumed by the BakingScript
 public class GZipSource : IRawDataSource
 {
-    public const int totalPixelEdits = 160353104;
-    public const long TimeStart = 637846304315770000;
+    public const long TimeStart = 637844138503150000;
     public const long TimeEnd = 637847144402070000;
 
-    private const string dataLocation = @"F:\rPlace2022\SortedFiles\"; // Generated from the GZipUnzipper methods
+    private const string dataLocation = @"F:\rPlace2022\SortedData.txt"; // Generated from the GZipUnzipper methods
     public ComputeBuffer PixelIndexValuesBuffer { get; private set; }
 
     public int CurrentStepIndex { get; private set; }
     private uint[] colorData;
 
-    public int TotalSteps { get; } = 1000; // Determines how many PNGs you want to produce
+    public int TotalSteps { get; } = 20000; // Determines how many PNGs you want to produce
 
     private long currentTimeLimit;
     private long timeStepSize;
 
     string currentLine;
+    private FileStream fileStream;
+    private StreamReader fileReader;
 
-    public GZipSource()
+    public GZipSource() 
     {
         colorData = new uint[MainViewerScript.ImageResolution * MainViewerScript.ImageResolution];
         PixelIndexValuesBuffer = new ComputeBuffer(MainViewerScript.ImageResolution * MainViewerScript.ImageResolution, sizeof(uint));
+        fileStream = File.Open(dataLocation, FileMode.Open);
+        fileReader = new StreamReader(fileStream);
 
         timeStepSize = (TimeEnd - TimeStart) / TotalSteps;
         currentTimeLimit = TimeStart;
+        currentLine = fileReader.ReadLine();
     }
 
     public void Dispose()
     {
+        fileReader.Dispose();
+        fileStream.Dispose();
         PixelIndexValuesBuffer.Dispose();
     }
 
     public void SetNextStep()
     {
         currentTimeLimit += timeStepSize;
-        string[] data = GetData();
-        foreach (string line in data)
+        do
         {
-            ProcessLine(line.Split(' '));
-        }
+            string[] lineComponents = currentLine.Split(' ');
+            long time = Convert.ToInt64(lineComponents[0]);
+            if (time < currentTimeLimit)
+            {
+                ProcessLine(lineComponents);
+            }
+            else
+            {
+                break;
+            }
+        } while ((currentLine = fileReader.ReadLine()) != null);
         PixelIndexValuesBuffer.SetData(colorData);
         CurrentStepIndex++;
-    }
-
-    private string[] GetData()
-    {
-        string[] files = Directory.GetFiles(dataLocation);
-        string file = files[CurrentStepIndex];
-        return File.ReadAllLines(file);
     }
 
     private void ProcessLine(string[] lineComponents)

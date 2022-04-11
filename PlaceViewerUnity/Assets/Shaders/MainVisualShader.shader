@@ -269,8 +269,8 @@
 				inout TriangleStream<g2f> triStream)
 			{
 				const float halfPixelOffset = ((float)SourceResolution / RealResolution) / SourceResolution / 2;
-				float2 north = float2(uvs.x , uvs.y + halfPixelOffset);
-				float2 south = float2(uvs.x, uvs.y - halfPixelOffset);
+				float2 north = float2(uvs.x, uvs.y - halfPixelOffset);
+				float2 south = float2(uvs.x, uvs.y + halfPixelOffset);
 				fixed4 northPixel = tex2Dlod(_MainTex, float4(north, 0, 0));
 				fixed northHeight = GetHeight(northPixel);
 				fixed4 southPixel = tex2Dlod(_MainTex, float4(south, 0, 0));
@@ -400,7 +400,7 @@
 				DrawVertical(uvs, currentHeight, p0vertex, p1vertex, p2vertex, o, triStream);
 			}
 			 
-			fixed4 frag (g2f i) : SV_Target
+			fixed4 frag(g2f i) : SV_Target
 			{
 				float3 toLight = normalize(_LightPos - i.worldPos);
 				float lambert = dot(i.normal, toLight);

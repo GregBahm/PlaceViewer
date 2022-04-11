@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class MainViewerScript : MonoBehaviour
 {
-    public const string OutputFolder = @"F:\rPlace2022\NewOutput"; // Change this to a local folder
+    public const string OutputFolder = @"F:\rPlace2022\BigOutput"; // Change this to a local folder
 
     public const int ImageResolution = 2048;
 
@@ -22,7 +22,7 @@ public class MainViewerScript : MonoBehaviour
     {
         BaseColor,
         Heat,
-        Longevity
+        Longevity,
     }
 
     public enum HeightMode
@@ -68,7 +68,10 @@ public class MainViewerScript : MonoBehaviour
         UpdateHeightModeProperties();
         mainTextureLoader.UpdateTexture(Time, texturePaths);
 
-        Shader.SetGlobalVector("_LightPos", Light.position);
+        foreach (Material material in Materials)
+        {
+            material.SetVector("_LightPos", Light.position);
+        }
     }
 
     private void UpdateHeightModeProperties()
@@ -77,8 +80,11 @@ public class MainViewerScript : MonoBehaviour
         float baseLongevityHeightTarget = CurrentHeightMode == HeightMode.Longevity ? 1 : 0;
         currentHeatHeightAlpha = Mathf.Lerp(currentHeatHeightAlpha, baseHeatHeightTarget, ColorLerpSpeed);
         currentLongevityHeightAlpha = Mathf.Lerp(currentLongevityHeightAlpha, baseLongevityHeightTarget, ColorLerpSpeed);
-        Shader.SetGlobalFloat("_HeatHeightAlpha", currentHeatHeightAlpha);
-        Shader.SetGlobalFloat("_LongevityHeightAlpha", currentLongevityHeightAlpha);
+        foreach (Material material in Materials)
+        {
+            material.SetFloat("_HeatHeightAlpha", currentHeatHeightAlpha);
+            material.SetFloat("_LongevityHeightAlpha", currentLongevityHeightAlpha);
+        }
     }
 
     private void UpdateColorModeProperties()
@@ -87,8 +93,11 @@ public class MainViewerScript : MonoBehaviour
         float longevityTarget = CurrentColorMode == ColorMode.Longevity ? 1 : 0;
         currentHeatAlpha = Mathf.Lerp(currentHeatAlpha, heatTarget, ColorLerpSpeed);
         currentLongevityAlpha = Mathf.Lerp(currentLongevityAlpha, longevityTarget, ColorLerpSpeed);
-        Shader.SetGlobalFloat("_HeatAlpha", currentHeatAlpha);
-        Shader.SetGlobalFloat("_LongevityAlpha", currentLongevityAlpha);
+        foreach (Material material in Materials)
+        {
+            material.SetFloat("_HeatAlpha", currentHeatAlpha);
+            material.SetFloat("_LongevityAlpha", currentLongevityAlpha);
+        }
     }
 
     internal void SetDisplayMode(DisplayMode displayMode)

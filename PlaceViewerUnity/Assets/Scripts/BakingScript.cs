@@ -12,7 +12,7 @@ public class BakingScript : MonoBehaviour
 
     public bool DisplayLongevity;
 
-    public Material Mat;
+    public Material[] Mats;
 
     [Range(0, 1)]
     public float HeatBurst;
@@ -195,11 +195,14 @@ public class BakingScript : MonoBehaviour
             File.WriteAllBytes(outputPath, outputPngData);
         }
 
-        Mat.SetFloat("_LongevityHeightAlpha", DisplayLongevity ? 1 : 0);
-        Mat.SetFloat("_HeatHeightAlpha", DisplayLongevity ? 0 : 1);
-        Mat.SetFloat("_LongevityAlpha", DisplayLongevity ? 1 : 0);
-        Mat.SetFloat("_HeatAlpha", 0);
-        Mat.SetTexture("_MainTex", outputRenderTexture);
+        foreach (Material mat in Mats)
+        {
+            mat.SetFloat("_LongevityHeightAlpha", DisplayLongevity ? 1 : 0);
+            mat.SetFloat("_HeatHeightAlpha", DisplayLongevity ? 0 : 1);
+            mat.SetFloat("_LongevityAlpha", DisplayLongevity ? 1 : 0);
+            mat.SetFloat("_HeatAlpha", 0);
+            mat.SetTexture("_MainTex", outputRenderTexture);
+        }
     }
 
     private string GetProgressText()
