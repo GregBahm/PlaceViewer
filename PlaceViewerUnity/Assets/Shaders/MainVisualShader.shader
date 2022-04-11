@@ -19,20 +19,25 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+
 
 		Pass
 		{
+			Tags {"LightMode" = "ForwardBase"}
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma geometry geo
-			#pragma fragment frag
-			
-			#include "UnityCG.cginc"
 
 #define SourceResolution 2000
 #define RealResolution 2048
+
+			#pragma vertex vert
+			#pragma geometry geo
+			#pragma fragment frag
+			#pragma multi_compile_fwdbase
+			#pragma target 4.5
+
+			#include "UnityCG.cginc"
+			#include "UnityLightingCommon.cginc"
+			#include "AutoLight.cginc"
 
 			struct appdata
 			{
@@ -48,13 +53,14 @@
 
 			struct g2f
 			{
+				float2 uv : TEXCOORD0;
 				float3 color : COLOR;
-				float4 vertex : SV_POSITION;
+				float4 pos : SV_POSITION;
 				float3 normal : NORMAL;
-				float3 worldPos : TEXCOORD1;
-				float distFromBounce : TEXCOORD2;
-				float3 bounceLightColor :TEXCOORD3;
-				float2 uv : TEXCOORD4;
+				float3 worldPos : TEXCOORD3;
+				float distFromBounce : TEXCOORD1;
+				float3 bounceLightColor :TEXCOORD2;
+				SHADOW_COORDS(4)
 			};
 
 			struct sideQuadVert
@@ -103,9 +109,11 @@
 			{
 				float shadow = 1 - sourceData.a;
 				shadow = lerp(1, shadow, _HeatHeightAlpha);
+				//shadow = 1;
 				float4 colorLutUVs = float4(sourceData.x, 0, 0, 0);
 				float3 baseColor = tex2Dlod(_PixelIndexLut, colorLutUVs).xyz;
 				baseColor = pow(baseColor * shadow, 2);
+				baseColor *= 1 + pow(sourceData.y, .5) * 4;
 
 				float heatLut = pow(sourceData.y * 10, .5);
 				float4 heatLutUVs = float4(heatLut + sourceData.a, 0, 0, 0);
@@ -147,28 +155,32 @@
 				o.distFromBounce = cornerA.distFromBounce;
 				o.bounceLightColor = cornerA.bounceLightColor;
 				o.worldPos = mul(unity_ObjectToWorld, cornerA.pos);
-				o.vertex = UnityObjectToClipPos(cornerA.pos);
+				o.pos = UnityObjectToClipPos(cornerA.pos);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 
 				o.uv = cornerB.uv;
 				o.distFromBounce = cornerB.distFromBounce;
 				o.bounceLightColor = cornerB.bounceLightColor;
 				o.worldPos = mul(unity_ObjectToWorld, cornerB.pos);
-				o.vertex = UnityObjectToClipPos(cornerB.pos);
+				o.pos = UnityObjectToClipPos(cornerB.pos);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 
 				o.uv = cornerC.uv;
 				o.distFromBounce = cornerC.distFromBounce;
 				o.bounceLightColor = cornerC.bounceLightColor;
 				o.worldPos = mul(unity_ObjectToWorld, cornerC.pos);
-				o.vertex = UnityObjectToClipPos(cornerC.pos);
+				o.pos = UnityObjectToClipPos(cornerC.pos);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 
 				o.uv = cornerD.uv;
 				o.distFromBounce = cornerD.distFromBounce;
 				o.bounceLightColor = cornerD.bounceLightColor;
 				o.worldPos = mul(unity_ObjectToWorld, cornerD.pos);
-				o.vertex = UnityObjectToClipPos(cornerD.pos);
+				o.pos = UnityObjectToClipPos(cornerD.pos);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 			}
 
@@ -220,7 +232,7 @@
 					cornerD.distFromBounce = 0;
 					cornerD.pos = float3(xDimension, leftHeight * _HeatHeightMax, lowerZ);
 
-					o.normal = float3(-1, 0, 0);
+					o.normal =  float3(-1, 0, 0);
 					DrawQuad(cornerA, cornerB, cornerC, cornerD, o, triStream);
 				}
 				if (rightHeight < currentHeight)
@@ -366,23 +378,24 @@
 				float3 p1vertex = p[1].vertex + float3(0, currentHeight * _HeatHeightMax, 0);
 				float3 p2vertex = p[2].vertex + float3(0, currentHeight * _HeatHeightMax, 0);
 
-
-				float3 baseNormal = mul(unity_ObjectToWorld, float3(0,1,0));
-				o.normal = baseNormal;
+				o.normal = float3(0, 1, 0);
 
 				o.uv = p[0].uv;
 				o.worldPos = mul(unity_ObjectToWorld, p[0].vertex);
-				o.vertex = UnityObjectToClipPos(p0vertex);
+				o.pos = UnityObjectToClipPos(p0vertex);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 
 				o.uv = p[1].uv;
 				o.worldPos = mul(unity_ObjectToWorld, p[1].vertex);
-				o.vertex = UnityObjectToClipPos(p1vertex);
+				o.pos = UnityObjectToClipPos(p1vertex);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 
 				o.uv = p[2].uv;
 				o.worldPos = mul(unity_ObjectToWorld, p[2].vertex);
-				o.vertex = UnityObjectToClipPos(p2vertex);
+				o.pos = UnityObjectToClipPos(p2vertex);
+				TRANSFER_SHADOW(o)
 				triStream.Append(o);
 
 				float longevityLut = sourceData.z;
@@ -402,9 +415,13 @@
 			 
 			fixed4 frag(g2f i) : SV_Target
 			{
+				float3 worldNormal = normalize(mul(unity_ObjectToWorld, i.normal));
 				float3 toLight = normalize(_LightPos - i.worldPos);
-				float lambert = dot(i.normal, toLight);
-				float3 ret = lerp(i.color * _BackLightColor, i.color * _MainLightColor, lambert);
+				float lambert = dot(worldNormal, _WorldSpaceLightPos0.xyz);
+				half shadow = SHADOW_ATTENUATION(i);
+				i.color = lerp(i.color * 1.5, 1, .5);
+				float3 ret = lerp(i.color * _BackLightColor, i.color * _MainLightColor, lambert * shadow);
+				return float4(ret, 1);
 
 				float3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
 				float3 halfVector = normalize(viewDir + toLight);
@@ -419,6 +436,259 @@
 				ret *= max(psuedoOcclusion, 1 - _HeatHeightAlpha); // Only want psuedoOcclusion with heat height
 
 				return float4(ret, 1);
+			}
+			ENDCG
+		}
+
+		Pass
+		{
+					Tags{ "LightMode" = "ShadowCaster" }
+			CGPROGRAM
+#define SourceResolution 2000
+#define RealResolution 2048
+			#pragma vertex vert
+			#pragma geometry geo
+			#pragma fragment frag
+
+			#include "UnityCG.cginc"
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct v2g
+			{
+				float2 uv : TEXCOORD0;
+				float4 vertex : SV_POSITION;
+			};
+
+			struct g2f
+			{
+				float4 vertex : SV_POSITION;
+			};
+
+			struct sideQuadVert
+			{
+				float3 pos : TEXCOORD0;
+			};
+
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			sampler2D _PixelIndexLut;
+			sampler2D _HeatLut;
+			sampler2D _LongevityLut;
+
+			float _HeatAlpha;
+			float _LongevityAlpha;
+
+			float3 _MainLightColor;
+			float3 _BackLightColor;
+			float3 _ShineColor;
+			float _ShinePower;
+			float3 _LightPos;
+			float _HeatBounceScale;
+			float _LongevityBounceScale;
+
+			float _HeatHeightRamp;
+			float _HeatHeightAlpha;
+			float _HeatHeightMax;
+			float _LongevityHeightRamp;
+			float _LongevityHeightAlpha;
+			float _LongevityHeightMax;
+
+			float GetHeight(fixed4 sourceData)
+			{
+				float heatHeight = pow(sourceData.y, _HeatHeightRamp) * _HeatHeightMax * _HeatHeightAlpha;
+
+				float rootLongevity = 1 - sourceData.z;
+				float longevityHeight = pow(rootLongevity, _LongevityHeightRamp) * _LongevityHeightAlpha * _LongevityHeightMax;
+
+				return heatHeight + longevityHeight;
+			}
+
+			v2g vert(appdata v)
+			{
+				v2g o;
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				o.uv.xy = 1 - o.uv.xy;
+				o.uv *= (float)SourceResolution / RealResolution;
+				o.vertex = v.vertex;
+				return o;
+			}
+
+			void DrawQuad(
+				sideQuadVert cornerA,
+				sideQuadVert cornerB,
+				sideQuadVert cornerC,
+				sideQuadVert cornerD,
+				g2f o,
+				inout TriangleStream<g2f> triStream)
+			{
+				triStream.RestartStrip();
+				o.vertex = UnityObjectToClipPos(cornerA.pos);
+				triStream.Append(o);
+
+				o.vertex = UnityObjectToClipPos(cornerB.pos);
+				triStream.Append(o);
+
+				o.vertex = UnityObjectToClipPos(cornerC.pos);
+				triStream.Append(o);
+
+				o.vertex = UnityObjectToClipPos(cornerD.pos);
+				triStream.Append(o);
+			}
+
+			void DrawHorizontal(float2 uvs,
+				fixed currentHeight,
+				float3 p0vertex,
+				float3 p1vertex,
+				float3 p2vertex,
+				g2f o,
+				inout TriangleStream<g2f> triStream)
+			{
+				const float halfPixelOffset = ((float)SourceResolution / RealResolution) / SourceResolution / 2;
+				float2 left = float2(uvs.x - halfPixelOffset, uvs.y);
+				float2 right = float2(uvs.x + halfPixelOffset, uvs.y);
+				fixed4 leftPixel = tex2Dlod(_MainTex, float4(left, 0, 0));
+				fixed leftHeight = GetHeight(leftPixel);
+				fixed4 rightPixel = tex2Dlod(_MainTex, float4(right, 0, 0));
+				fixed rightHeight = GetHeight(rightPixel);
+
+				if (leftHeight < currentHeight)
+				{
+					float xDimension = min(p0vertex.x, min(p1vertex.x, p2vertex.x));
+					float upperZ = max(p0vertex.z, max(p1vertex.z, p2vertex.z));
+					float lowerZ = min(p0vertex.z, min(p1vertex.z, p2vertex.z));
+
+					sideQuadVert cornerA;
+					cornerA.pos = float3(xDimension, currentHeight * _HeatHeightMax, upperZ);
+
+					sideQuadVert cornerB;
+					cornerB.pos = float3(xDimension, currentHeight * _HeatHeightMax, lowerZ);
+
+					sideQuadVert cornerC;
+					cornerC.pos = float3(xDimension, leftHeight * _HeatHeightMax, upperZ);
+
+					sideQuadVert cornerD;
+					cornerD.pos = float3(xDimension, leftHeight * _HeatHeightMax, lowerZ);
+
+					DrawQuad(cornerA, cornerB, cornerC, cornerD, o, triStream);
+				}
+				if (rightHeight < currentHeight)
+				{
+					float xDimension = max(p0vertex.x, max(p1vertex.x, p2vertex.x));
+					float upperZ = max(p0vertex.z, max(p1vertex.z, p2vertex.z));
+					float lowerZ = min(p0vertex.z, min(p1vertex.z, p2vertex.z));
+
+					sideQuadVert cornerA;
+					cornerA.pos = float3(xDimension, currentHeight * _HeatHeightMax, upperZ);
+
+					sideQuadVert cornerB;
+					cornerB.pos = float3(xDimension, currentHeight * _HeatHeightMax, lowerZ);
+
+					sideQuadVert cornerC;
+					cornerC.pos = float3(xDimension, rightHeight * _HeatHeightMax, upperZ);
+
+					sideQuadVert cornerD;
+					cornerD.pos = float3(xDimension, rightHeight * _HeatHeightMax, lowerZ);
+
+					DrawQuad(cornerA, cornerC, cornerB, cornerD, o, triStream);
+				}
+			}
+
+			void DrawVertical(float2 uvs,
+				fixed currentHeight,
+				float3 p0vertex,
+				float3 p1vertex,
+				float3 p2vertex,
+				g2f o,
+				inout TriangleStream<g2f> triStream)
+			{
+				const float halfPixelOffset = ((float)SourceResolution / RealResolution) / SourceResolution / 2;
+				float2 north = float2(uvs.x, uvs.y - halfPixelOffset);
+				float2 south = float2(uvs.x, uvs.y + halfPixelOffset);
+				fixed4 northPixel = tex2Dlod(_MainTex, float4(north, 0, 0));
+				fixed northHeight = GetHeight(northPixel);
+				fixed4 southPixel = tex2Dlod(_MainTex, float4(south, 0, 0));
+				fixed southHeight = GetHeight(southPixel);
+
+				if (northHeight < currentHeight)
+				{
+					float zDimension = min(p0vertex.z, min(p1vertex.z, p2vertex.z));
+					float upperX = max(p0vertex.x, max(p1vertex.x, p2vertex.x));
+					float lowerX = min(p0vertex.x, min(p1vertex.x, p2vertex.x));
+
+					sideQuadVert cornerA;
+					cornerA.pos = float3(upperX, currentHeight * _HeatHeightMax, zDimension);
+
+					sideQuadVert cornerB;
+					cornerB.pos = float3(lowerX, currentHeight * _HeatHeightMax, zDimension);
+
+					sideQuadVert cornerC;
+					cornerC.pos = float3(upperX, northHeight * _HeatHeightMax, zDimension);
+
+					sideQuadVert cornerD;
+					cornerD.pos = float3(lowerX, northHeight * _HeatHeightMax, zDimension);
+
+					DrawQuad(cornerB, cornerA, cornerD, cornerC, o, triStream);
+				}
+				if (southHeight < currentHeight)
+				{
+					float zDimension = max(p0vertex.z, max(p1vertex.z, p2vertex.z));
+					float upperX = max(p0vertex.x, max(p1vertex.x, p2vertex.x));
+					float lowerX = min(p0vertex.x, min(p1vertex.x, p2vertex.x));
+
+					sideQuadVert cornerA;
+					cornerA.pos = float3(upperX, currentHeight * _HeatHeightMax, zDimension);
+
+					sideQuadVert cornerB;
+					cornerB.pos = float3(lowerX, currentHeight * _HeatHeightMax, zDimension);
+
+					sideQuadVert cornerC;
+					cornerC.pos = float3(upperX, southHeight * _HeatHeightMax, zDimension);
+
+					sideQuadVert cornerD;
+					cornerD.pos = float3(lowerX, southHeight * _HeatHeightMax, zDimension);
+
+					DrawQuad(cornerC, cornerA, cornerD, cornerB, o, triStream);
+				}
+			}
+
+			[maxvertexcount(11)]
+			void geo(triangle v2g p[3], inout TriangleStream<g2f> triStream)
+			{
+				g2f o;
+				float2 uvs = (p[0].uv + p[1].uv + p[2].uv) / 3;
+				fixed4 sourceData = tex2Dlod(_MainTex, float4(uvs, 0, 0));
+				fixed currentHeight = GetHeight(sourceData);
+
+				float3 p0vertex = p[0].vertex + float3(0, currentHeight * _HeatHeightMax, 0);
+				float3 p1vertex = p[1].vertex + float3(0, currentHeight * _HeatHeightMax, 0);
+				float3 p2vertex = p[2].vertex + float3(0, currentHeight * _HeatHeightMax, 0);
+
+				o.vertex = UnityObjectToClipPos(p0vertex);
+				triStream.Append(o);
+
+				o.vertex = UnityObjectToClipPos(p1vertex);
+				triStream.Append(o);
+
+				o.vertex = UnityObjectToClipPos(p2vertex);
+				triStream.Append(o);
+
+				if (currentHeight == 0)
+				{
+					return;
+				}
+
+				DrawHorizontal(uvs, currentHeight, p0vertex, p1vertex, p2vertex, o, triStream);
+				DrawVertical(uvs, currentHeight, p0vertex, p1vertex, p2vertex, o, triStream);
+			}
+
+			fixed4 frag(g2f i) : SV_Target
+			{
+				return 0;
 			}
 			ENDCG
 		}
