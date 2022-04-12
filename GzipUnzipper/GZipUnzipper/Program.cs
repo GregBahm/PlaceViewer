@@ -21,10 +21,25 @@ namespace GZipUnzipper
 
         static void Main(string[] args)
         {
-            ValidateData();
+            GenerateDataSubset();
+            //ValidateData();
             //ChunkTheData();
             //SortTheChunks();
             //ReorganizeTheData();
+        }
+
+        private static void GenerateDataSubset()
+        {
+            string bigOutputFolder = @"F:\rPlace2022\BigOutput\"; // Folder containing 20,000 images baked out
+            string[] files = Directory.GetFiles(bigOutputFolder);
+            string littleOutputFolder = @"F:\rPlace2022\LittleOutput\"; // Folder to contain 1,000 images
+
+            for (int i = 0; i < 20000; i+=40)
+            {
+                int imageFileIndex = i / 40;
+                string outputPath = littleOutputFolder + imageFileIndex.ToString("D5") + ".png";
+                File.Copy(files[i], outputPath);
+            }
         }
 
         private static void ReorganizeTheData()

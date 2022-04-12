@@ -43,12 +43,14 @@
 			{
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct v2g
 			{
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
+				UNITY_VERTEX_OUTPUT_STEREO_EYE_INDEX
 			};
 
 			struct g2f
@@ -61,6 +63,7 @@
 				float distFromBounce : TEXCOORD1;
 				float3 bounceLightColor :TEXCOORD2;
 				SHADOW_COORDS(4)
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			struct sideQuadVert
@@ -134,6 +137,9 @@
 			v2g vert (appdata v)
 			{
 				v2g o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_OUTPUT_STEREO_EYE_INDEX(o);
+
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				o.uv.xy = 1 - o.uv.xy;
 				o.uv *= (float)SourceResolution / RealResolution;
@@ -364,6 +370,9 @@
 			void geo(triangle v2g p[3], inout TriangleStream<g2f> triStream)
 			{
 				g2f o;
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(p[0]);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
 				o.distFromBounce = 1;
 				o.bounceLightColor = 0;
 
