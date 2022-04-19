@@ -33,7 +33,6 @@ public class BlurredMatProvider : MonoBehaviour
 
 		// downsample screen copy into smaller RT, release screen RT
 		ret.Blit(screenCopyID, blurredID);
-		ret.ReleaseTemporaryRT(screenCopyID);
 
 		// horizontal blur
 		ret.SetGlobalVector("offsets", new Vector4(2.0f / Screen.width, 0, 0, 0));
@@ -48,6 +47,7 @@ public class BlurredMatProvider : MonoBehaviour
 		ret.SetGlobalVector("offsets", new Vector4(0, 4.0f / Screen.height, 0, 0));
 		ret.Blit(blurredID2, blurredID, blurMat);
 
+		ret.SetGlobalTexture("_GrabBaseTexture", screenCopyID);
 		ret.SetGlobalTexture("_GrabBlurTexture", blurredID);
 		return ret;
     }
