@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class MainViewerScript : MonoBehaviour
 {
-    public const string OutputFolder = @"F:\rPlace2022\LittleOutput"; // Change this to a local folder
+    public const string OutputFolder = @"E:\rPlace2022\LittleOutput"; // Change this to a local folder
 
     public const int ImageResolution = 2048;
 
